@@ -1,0 +1,4 @@
+,BlueprintClass
+Bonnie,Blueprint'/Game/Blueprints/Character/BP_BaseCharacter.BP_BaseCharacter_C'
+Orc,Blueprint'/Game/Blueprints/Character/Monster/BP_Orc.BP_Orc_C'
+Nexus,Blueprint'/Game/Blueprints/Gameplay/BP_Nexus.BP_Nexus_C'
