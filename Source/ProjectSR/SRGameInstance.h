@@ -32,6 +32,9 @@ public:
 	void Init();
 	void Decide_NextAction();
 
+	UFUNCTION()
+	void Callback_ResourceCacheFinished(uint8 Sequence);
+
 private:
 	void Do_CacheMap();
 	void Do_CacheRemains();

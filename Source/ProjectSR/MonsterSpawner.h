@@ -34,8 +34,16 @@ public:
 	/*Spawn Period*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMonsterSpawner")
 	float SpawnCoolTime = 0.f;
+	/*Spawner Particle*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMonsterSpawner")
+	class UParticleSystemComponent* ParticleSystemComponent;
 
 private:
 	float ElapsedTime = 0.f;
+
+	UPROPERTY()
+	TSubclassOf<class AMonster> MonsterClass;
+
+	
 	
 };

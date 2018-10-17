@@ -7,6 +7,7 @@
 #include "BaseCharacter.h"
 #include "BasePlayerController.h"
 #include "MapFunctionLibrary.h"
+#include "UP_Ingame.h"
 
 AStageGameMode::AStageGameMode()
 {
@@ -27,7 +28,9 @@ void AStageGameMode::BeginPlay()
 			UClass* TargetClass = nullptr;
 			if (!tableinfo->BlueprintClass.IsValid())
 			{
+#ifdef WITH_EDITOR
 				TargetClass = tableinfo->BlueprintClass.LoadSynchronous();
+#endif
 			}
 			else
 			{
@@ -36,8 +39,6 @@ void AStageGameMode::BeginPlay()
 
 
 			/*Spawn Nexus*/
-			
-			
 			TArray<AActor*> OutActors;
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
 
@@ -53,6 +54,30 @@ void AStageGameMode::BeginPlay()
 	}
 	/**/
 
+
+	USRGameInstance* GameInst = SRGAMEINSTANCE(this);
+	if (GameInst)
+	{
+		FWidgetTableInfos* TableInfo = GameInst->TableManager->GetTableInfo<FWidgetTableInfos>(GameInst->TableManager->DTWidgetTable, WIDGET_INGAME);
+		if (TableInfo)
+		{
+			UClass* WidgetClass = nullptr;
+			if (TableInfo->WidgetClass.IsValid())
+			{
+				WidgetClass = TableInfo->WidgetClass.Get();
+			}
+			else
+			{
+				WidgetClass = TableInfo->WidgetClass.LoadSynchronous();
+			}
+
+			IngameWidget = CreateWidget<UUP_Ingame>(SRGAMEINSTANCE(GEngine), WidgetClass, WIDGET_INGAME);
+			if (IsValid(IngameWidget) && !IngameWidget->IsInViewport())
+			{
+				IngameWidget->AddToViewport();
+			}
+		}
+	}
 
 	
 }

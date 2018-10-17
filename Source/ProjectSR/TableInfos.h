@@ -23,7 +23,21 @@ struct FMapTableInfos : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TableInfos")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")
 	TSoftObjectPtr<class UWorld> MapObjectPtr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")
+	FName MapName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")
+	TArray<FName> ActorIDList;
+
+};
+
+USTRUCT()
+struct FWidgetTableInfos : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")
+	TSoftClassPtr<class UUserWidget> WidgetClass;
 
 };

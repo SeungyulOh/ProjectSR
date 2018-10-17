@@ -26,20 +26,4 @@ void UUP_Start::NativeDestruct()
 void UUP_Start::Callback_ButtonStart()
 {
 	SRGAMEINSTANCE(this)->GameStartHelper->Decide_NextAction();
-
-	//UPackage* package = SRGAMEINSTANCE(this)->MapArray[0];
-	//if (IsValid(package) && package->IsFullyLoaded())
-	//{
-	//	FString path = package->GetName();
-	//	float LoadedTime = package->GetLoadTime();
-	//	
-	//	/*
-	//	Make Sure put Corrent Map Name, not path!
-	//	Why? If you put Path instead of Name , your character won't work as intended.
-	//	*/
-
-	//	UGameplayStatics::OpenLevel(this, TEXT("OutLand_Field_01_P"));
-	//}
-
-	/*UGameplayStatics::OpenLevel(this, TEXT("OutLand_Field_01_P"));*/
 }

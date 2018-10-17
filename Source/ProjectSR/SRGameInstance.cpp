@@ -16,6 +16,7 @@ void USRGameInstance::Init()
 	/*Initialization*/
 	TableManager->Init();
 	GameStartHelper->Init();
+	ResourceCacheManager->Init();
 }
 
 void USRGameInstance::Shutdown()
@@ -55,6 +56,14 @@ class USRGameInstance* USRGameInstance::GetSRGameInstance(class UObject* OutterO
 void UGameStartHelper::Init()
 {
 	RequirementArray.Init(false, (int32)EPrerequisiteGameStart::END);
+
+	USRGameInstance* GameInst = Cast<USRGameInstance>(GetOuter());
+	if (GameInst)
+	{
+		GameInst->ResourceCacheManager->OnResourceCacheFinished.Unbind();
+		GameInst->ResourceCacheManager->OnResourceCacheFinished.BindUObject(this, &UGameStartHelper::Callback_ResourceCacheFinished);
+	}
+	
 }
 
 void UGameStartHelper::Decide_NextAction()
@@ -72,6 +81,17 @@ void UGameStartHelper::Decide_NextAction()
 
 	Do_StartGame();
 }
+
+void UGameStartHelper::Callback_ResourceCacheFinished(uint8 Sequence)
+{
+	if (RequirementArray.IsValidIndex(Sequence))
+	{
+		RequirementArray[Sequence] = true;
+	}
+
+	Decide_NextAction();
+}
+
 
 void UGameStartHelper::Do_CacheMap()
 {
@@ -93,5 +113,22 @@ void UGameStartHelper::Do_CacheRemains()
 
 void UGameStartHelper::Do_StartGame()
 {
+	USRGameInstance* GameInst = Cast<USRGameInstance>(GetOuter());
+	UTableManager* TableManager = GameInst->TableManager;
+	UResourceCacheManager* ResourceCacheManager = GameInst->ResourceCacheManager;
 
+	FMapTableInfos* MapTableInfo = TableManager->GetTableInfo<FMapTableInfos>(TableManager->DTMapTable, FName(*FString::FromInt(CurrentStage)));
+	if (MapTableInfo)
+	{
+		if (IsValid(ResourceCacheManager->CachedMap) && ResourceCacheManager->CachedMap->IsFullyLoaded())
+		{
+			/*
+			Make Sure put Corrent Map Name, not path!
+			Why? If you put Path instead of Name , your character won't work as intended.
+			*/
+
+			UGameplayStatics::OpenLevel(this, MapTableInfo->MapName);
+		}
+	}
+	
 }

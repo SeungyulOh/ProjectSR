@@ -19,5 +19,9 @@ public:
 
 	virtual void BeginPlay() override;
 	
+
+private:
+	UPROPERTY()
+	class UUP_Ingame* IngameWidget = nullptr;
 	
 };

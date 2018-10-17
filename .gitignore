@@ -1,0 +1,10 @@
+## Ignore Files ##
+
+.vs/
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+Background.png
+ProjectSR.sln

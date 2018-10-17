@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Engine/StreamableManager.h"
 #include "ResourceCacheManager.generated.h"
 
 
-DECLARE_DELEGATE(FResourceCacheFinished)
+DECLARE_DELEGATE_OneParam(FResourceCacheFinished , uint8)
+
 
 /**
  * 
@@ -18,22 +20,34 @@ class PROJECTSR_API UResourceCacheManager : public UObject
 	GENERATED_BODY()
 
 public:
+	void Init();
+
 	void Cache_Map();
 	void Cache_Remains();
 
+	UFUNCTION()
+	void Callback_AsyncLoad();
+private:
+	void ShowLoadingScene(bool bShow);
+	
 public:
 	FResourceCacheFinished OnResourceCacheFinished;
 	
-private:
-	/*Map Cache*/
 	UPROPERTY()
-	TArray<class UPackage*> MapArray;
-	/**/
+	class UPackage* CachedMap;
+
+private:
 	UPROPERTY()
 	TArray<FSoftObjectPath> AssetsQueue;
+	UPROPERTY()
+	TArray<FSoftObjectPath> CachedAssetPath;
 	UPROPERTY()
 	TArray<UObject*> CachedResourceArray;
 	UPROPERTY()
 	TArray<UClass*> CachedUClassArray;
 	
+	int32 iPartition = 5;
+
+	UPROPERTY()
+	class UUP_LoadingScene* LoadingWidget = nullptr;
 };

@@ -1,0 +1,3 @@
+,WidgetClass
+UP_LoadingScene,WidgetBlueprint'/Game/UMG/UP_LoadingScene.UP_LoadingScene_C'
+UP_Ingame,WidgetBlueprint'/Game/UMG/UP_Ingame.UP_Ingame_C'
