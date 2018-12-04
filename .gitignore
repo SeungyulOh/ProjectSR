@@ -5,6 +5,8 @@ Binaries/
 DerivedDataCache/
 Intermediate/
 Saved/
+Build/
+Releases/
 
 Background.png
 ProjectSR.sln

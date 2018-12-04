@@ -17,5 +17,5 @@ extern PROJECTSR_API class USRGameInstance*	SRGameInstance;
 #if WITH_EDITOR
 #define SRGAMEINSTANCE(p) (USRGameInstance::GetSRGameInstance(p))
 #else
-#define SRGAMEINSTANCE(p) GRGameInstance
+#define SRGAMEINSTANCE(p) SRGameInstance
 #endif

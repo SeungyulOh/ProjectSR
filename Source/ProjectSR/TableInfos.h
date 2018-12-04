@@ -24,7 +24,7 @@ struct FMapTableInfos : public FTableRowBase
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")
-	TSoftObjectPtr<class UWorld> MapObjectPtr;
+	TSoftObjectPtr<UObject> MapObjectPtr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")
 	FName MapName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FMapTableInfos")

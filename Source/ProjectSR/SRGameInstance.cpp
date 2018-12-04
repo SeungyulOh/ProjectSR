@@ -120,14 +120,19 @@ void UGameStartHelper::Do_StartGame()
 	FMapTableInfos* MapTableInfo = TableManager->GetTableInfo<FMapTableInfos>(TableManager->DTMapTable, FName(*FString::FromInt(CurrentStage)));
 	if (MapTableInfo)
 	{
+		UGameplayStatics::OpenLevel(SRGAMEINSTANCE(GEngine), MapTableInfo->MapName);
+		return;
 		if (IsValid(ResourceCacheManager->CachedMap) && ResourceCacheManager->CachedMap->IsFullyLoaded())
 		{
 			/*
 			Make Sure put Corrent Map Name, not path!
 			Why? If you put Path instead of Name , your character won't work as intended.
 			*/
+			bool isMapPackage = ResourceCacheManager->CachedMap->ContainsMap();
+			FString mapStr = ResourceCacheManager->CachedMap->FileName.ToString();
+			bool isvalidMapName = GEngine->MakeSureMapNameIsValid(mapStr);
+			UGameplayStatics::OpenLevel(SRGAMEINSTANCE(GEngine), ResourceCacheManager->CachedMap->FileName);
 
-			UGameplayStatics::OpenLevel(this, MapTableInfo->MapName);
 		}
 	}
 	

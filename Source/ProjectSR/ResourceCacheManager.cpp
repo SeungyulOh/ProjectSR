@@ -35,7 +35,8 @@ void UResourceCacheManager::Init()
 void UResourceCacheManager::Cache_Map()
 {
 	ShowLoadingScene(true);
-
+	OnResourceCacheFinished.ExecuteIfBound((uint8)UGameStartHelper::EPrerequisiteGameStart::MAPCACHE);
+	return;
 	
 
 	USRGameInstance* GameInst = Cast<USRGameInstance>(GetOuter());
@@ -154,7 +155,7 @@ void UResourceCacheManager::Callback_AsyncLoad()
 			}
 		}
 
-		for (size_t i = 0; i < CachedUClassArray.Num(); ++i)
+		/*for (size_t i = 0; i < CachedUClassArray.Num(); ++i)
 		{
 			if (CachedUClassArray[i]->IsChildOf<ACharacter>())
 			{
@@ -172,7 +173,7 @@ void UResourceCacheManager::Callback_AsyncLoad()
 					}
 				}
 			}
-		}
+		}*/
 
 		OnResourceCacheFinished.ExecuteIfBound((uint8)UGameStartHelper::EPrerequisiteGameStart::REMAINCACHE);
 	}
