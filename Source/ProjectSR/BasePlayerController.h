@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GlobalContants.h"
 #include "GameFramework/PlayerController.h"
 #include "BasePlayerController.generated.h"
 
@@ -20,11 +21,24 @@ public:
 	void CallbackAxis_CamUpDown(float AxisValue);
 	UFUNCTION()
 	void CallbackAxis_CamLeftRight(float AxisValue);
+
+	UFUNCTION()
+	void CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector Location);
+	UFUNCTION()
+	void CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector Location);
+	UFUNCTION()
+	void CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector Location);
 private:
 	FVector Calculate_MoveDirectionVector();
 
 private:
 	FVector MoveAxis;
+
+	/*Allow just 1 touch for now*/
+	ETouchIndex::Type CurrentTouchType = ETouchIndex::MAX_TOUCHES;
+	FVector2D StartPos;
+	FVector2D CurrentPos;
+	FVector2D DirectionVector;
 };
 
 /**
@@ -40,8 +54,9 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
-
 	
+	
+
 	/*Input Helper*/
 private:
 

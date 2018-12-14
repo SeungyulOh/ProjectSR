@@ -2,6 +2,12 @@
 
 #include "BasePlayerController.h"
 #include "Engine.h"
+#include "UtilFunctionLibrary.h"
+#include "BaseLevelScriptActor.h"
+#include "StageGameMode.h"
+#include "ProjectSR.h"
+#include "WidgetLayoutLibrary.h"
+#include "Engine/UserInterfaceSettings.h"
 
 const float MaxPitch = -20.f;
 const float MinPitch = -60.f;
@@ -30,6 +36,12 @@ void ABasePlayerController::SetupInputComponent()
 		InputComponent->BindAxis(FName(TEXT("MoveLeftRight")), InputHelper, &UInputHelper::CallbackAxis_MoveLeftRight);
 		InputComponent->BindAxis(FName(TEXT("CamUpDown")), InputHelper, &UInputHelper::CallbackAxis_CamUpDown);
 		InputComponent->BindAxis(FName(TEXT("CamLeftRight")), InputHelper, &UInputHelper::CallbackAxis_CamLeftRight);
+
+
+		InputComponent->BindTouch(IE_Pressed, InputHelper, &UInputHelper::CallbackInputTouchBegin);
+		InputComponent->BindTouch(IE_Repeat, InputHelper, &UInputHelper::CallbackInputTouchOver);
+		InputComponent->BindTouch(IE_Released, InputHelper, &UInputHelper::CallbackInputTouchEnd);
+		
 		/*Base Input Settings End*/
 	}
 
@@ -111,6 +123,72 @@ void UInputHelper::CallbackAxis_CamLeftRight(float AxisValue)
 		Rot.Yaw += AxisValue;
 		SpringArm->SetRelativeRotation(Rot);
 	}
+}
+
+void UInputHelper::CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector Location)
+{
+#if WITH_EDITOR
+	FString str = TEXT("CallbackInputTouchBegin idx : ") + FString::FromInt((int)TouchIndex) + TEXT(" Location : ") + FString::FromInt(Location.X) + TEXT(" ,") + FString::FromInt(Location.Y) + TEXT(" ,") + FString::FromInt(Location.Z);
+	UE_LOG(LogClass, Log, TEXT("%s"), *str);
+#endif
+
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ETOPVIEW)
+	{
+		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+		{
+			CurrentTouchType = TouchIndex;
+			StartPos = FVector2D(Location.X, Location.Y);
+			CurrentPos = StartPos;
+		}
+	}
+	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_IDLE ||
+		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_START ||
+		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_END)
+	{
+		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
+		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+
+		UUtilFunctionLibrary::GetBuildingManager()->OnClickedWhenBuildingMode.Broadcast(Location / viewScale);
+	}
+		
+}
+
+void UInputHelper::CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector Location)
+{
+#if WITH_EDITOR
+	FString str = TEXT("CallbackInputTouchOver idx : ") + FString::FromInt((int)TouchIndex) + TEXT(" Location : ") + FString::FromInt(Location.X) + TEXT(" ,") + FString::FromInt(Location.Y) + TEXT(" ,") + FString::FromInt(Location.Z);
+	UE_LOG(LogClass, Log, TEXT("%s"), *str);
+#endif
+
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() != EUserModeEnum::ETOPVIEW)
+		return;
+
+	if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+		return;
+
+	
+	DirectionVector = FVector2D(Location.X , Location.Y) - CurrentPos;
+	UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(DirectionVector);
+	CurrentPos = FVector2D(Location.X, Location.Y);
+}
+
+void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector Location)
+{
+#if WITH_EDITOR
+	FString str = TEXT("CallbackInputTouchEnd idx : ") + FString::FromInt((int)TouchIndex) + TEXT(" Location : ") + FString::FromInt(Location.X) + TEXT(" ,") + FString::FromInt(Location.Y) + TEXT(" ,") + FString::FromInt(Location.Z);
+	UE_LOG(LogClass, Log, TEXT("%s"), *str);
+#endif
+	EUserModeEnum mode = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode();
+	if (mode == EUserModeEnum::ETOPVIEW)
+	{
+		if (CurrentTouchType != ETouchIndex::MAX_TOUCHES)
+		{
+			CurrentTouchType = ETouchIndex::MAX_TOUCHES;
+		}
+	}
+	
+	
 }
 
 FVector UInputHelper::Calculate_MoveDirectionVector()

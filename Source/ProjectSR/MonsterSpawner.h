@@ -23,6 +23,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	UFUNCTION()
+	void Callback_DrawPath();
+
 
 public:
 	/*This Spawner is done with working when TotalSpawnCount is zero*/
@@ -43,6 +47,9 @@ private:
 
 	UPROPERTY()
 	TSubclassOf<class AMonster> MonsterClass;
+
+	UPROPERTY()
+	FTimerHandle PathShowTimer;
 
 	
 	

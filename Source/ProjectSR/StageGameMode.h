@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectSRGameModeBase.h"
+#include "GlobalContants.h"
 #include "StageGameMode.generated.h"
 
 /**
@@ -19,9 +20,55 @@ public:
 
 	virtual void BeginPlay() override;
 	
+public:
+	void SetUserMode(EUserModeEnum InMode);
+
+	FORCEINLINE EUserModeEnum GetCurrentUserMode() { return UserMode; }
+	FORCEINLINE bool			GetisMonsterSpawned() { return bMonsterSpawned; }
+	FORCEINLINE void			SetisMonsterSpawned() { bMonsterSpawned = true; }
+
+public:
+	
+	UPROPERTY()
+	class AActor* cachedViewtarget = nullptr;
+
+	UPROPERTY()
+	class UUP_Ingame* IngameWidget = nullptr;
+
+	UPROPERTY()
+	class UBuildingManager* BuildingManager = nullptr;
+
+
+
+private:
+	void DoTasks();
 
 private:
 	UPROPERTY()
-	class UUP_Ingame* IngameWidget = nullptr;
+	EUserModeEnum		UserMode = EUserModeEnum::ENORMAL;
+
+	bool				bMonsterSpawned = false;
 	
+};
+
+
+UCLASS()
+class PROJECTSR_API UBuildingManager : public UObject
+{
+	GENERATED_BODY()
+
+
+public:
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnClickedWhenBuildingMode , FVector)
+	FOnClickedWhenBuildingMode OnClickedWhenBuildingMode;
+
+public:
+	UPROPERTY()
+	TArray<class ASplineWall*> WallArray;
+
+	UPROPERTY()
+	class ASplineWall*	CurrentWall;
+
+	TArray<FVector> WallPoints;
+
 };

@@ -41,3 +41,14 @@ struct FWidgetTableInfos : public FTableRowBase
 	TSoftClassPtr<class UUserWidget> WidgetClass;
 
 };
+
+
+USTRUCT()
+struct FResourceCacheInfos : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FResourceCacheInfos")
+	TSoftObjectPtr<UObject> CacheObject;
+
+};

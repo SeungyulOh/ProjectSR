@@ -90,6 +90,16 @@ void UResourceCacheManager::Cache_Remains()
 				}
 			}
 		}
+
+		TArray<FName> ResourceCacheNames = TableManager->DTResourceCacheTable->GetRowNames();
+		for (size_t i = 0; i < ResourceCacheNames.Num(); ++i)
+		{
+			FResourceCacheInfos* tableinfo = TableManager->GetTableInfo<FResourceCacheInfos>(TableManager->DTResourceCacheTable, ResourceCacheNames[i]);
+			if (tableinfo)
+			{
+				AssetsQueue.AddUnique(tableinfo->CacheObject.ToSoftObjectPath());
+			}
+		}
 	}
 
 	CachedAssetPath = AssetsQueue;

@@ -76,4 +76,11 @@ public:
 	UGameStartHelper* GameStartHelper;
 	/*V.2. Helepers End*/
 
+
+
+
+	/*Variables*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAMEINSTANCE")
+	FViewTargetTransitionParams BlendParams;
+
 };

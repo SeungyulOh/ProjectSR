@@ -26,6 +26,8 @@ public:
 	UDataTable* DTMapTable;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = TableManager)
 	UDataTable* DTWidgetTable;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = TableManager)
+	UDataTable* DTResourceCacheTable;
 
 
 	template<typename T>

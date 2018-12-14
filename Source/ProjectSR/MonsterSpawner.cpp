@@ -6,6 +6,9 @@
 #include "TableManager.h"
 #include "NavigationSystem.h"
 #include "NavigationSystem/Public/NavigationPath.h"
+#include "UtilFunctionLibrary.h"
+#include "StageGameMode.h"
+#include "BaseLevelScriptActor.h"
 
 
 // Sets default values
@@ -38,34 +41,9 @@ void AMonsterSpawner::BeginPlay()
 #endif
 	}
 
-	TArray<AActor*> OutActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
-	FVector TargetLocation = OutActors[0]->GetActorLocation();
+	GetWorld()->GetTimerManager().ClearTimer(PathShowTimer);
+	GetWorld()->GetTimerManager().SetTimer(PathShowTimer,this , &AMonsterSpawner::Callback_DrawPath, 2.5f, true);
 
-	
-	UNavigationSystemV1* NavSystem = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
-	if (NavSystem)
-	{
-		UNavigationPath* path = NavSystem->FindPathToLocationSynchronously(GetWorld(), GetActorLocation(), TargetLocation);
-		if (path)
-		{
-			path->EnableDebugDrawing(true);
-			TArray<FNavPathPoint> pathPoints = path->GetPath()->GetPathPoints();
-
-			for (size_t i = 0; i < pathPoints.Num(); ++i)
-			{
-				if (!pathPoints.IsValidIndex(i + 1))
-					break;
-
-				FVector StartPoint = pathPoints[i].Location;
-				FVector EndPoint = pathPoints[i + 1].Location;
-				DrawDebugDirectionalArrow(GetWorld(), StartPoint, EndPoint, 10.f, FColor::Cyan, false, 10.f, 0.f, 10.f);
-			}
-
-			
-		}
-	}
-	
 }
 
 // Called every frame
@@ -73,11 +51,18 @@ void AMonsterSpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
+		return;
+
 	if (IsPendingKill())
 		return;
 
 	if (TotalSpawnCount <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(PathShowTimer);
 		Destroy();
+	}
+		
 
 	ElapsedTime += DeltaTime;
 	if (ElapsedTime >= SpawnCoolTime)
@@ -96,5 +81,34 @@ void AMonsterSpawner::Tick(float DeltaTime)
 		ElapsedTime = 0.f;
 	}
 
+}
+
+void AMonsterSpawner::Callback_DrawPath()
+{
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
+	FVector TargetLocation = OutActors[0]->GetActorLocation();
+	UNavigationSystemV1* NavSystem = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
+	if (NavSystem)
+	{
+		UNavigationPath* path = NavSystem->FindPathToLocationSynchronously(GetWorld(), GetActorLocation(), TargetLocation);
+		if (path)
+		{
+			path->EnableDebugDrawing(true);
+			TArray<FNavPathPoint> pathPoints = path->GetPath()->GetPathPoints();
+
+			for (size_t i = 0; i < pathPoints.Num(); ++i)
+			{
+				if (!pathPoints.IsValidIndex(i + 1))
+					break;
+
+				FVector StartPoint = pathPoints[i].Location;
+				FVector EndPoint = pathPoints[i + 1].Location;
+				StartPoint.Z += 50.f;
+				EndPoint.Z += 50.f;
+				DrawDebugDirectionalArrow(GetWorld(), StartPoint, EndPoint, 1.f, FColor::Cyan, false, 1.5f, 0.f, 10.f);
+			}
+		}
+	}
 }
 
