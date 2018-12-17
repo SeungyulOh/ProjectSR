@@ -21,7 +21,7 @@ public:
 	UDataTable* LoadTableFromPath(const FName& Path);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = TableManager)
-	UDataTable* DTCharacterTable;
+	UDataTable* DTObjectTable;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = TableManager)
 	UDataTable* DTMapTable;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = TableManager)

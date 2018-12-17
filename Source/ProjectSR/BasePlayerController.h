@@ -28,6 +28,8 @@ public:
 	void CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector Location);
 	UFUNCTION()
 	void CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector Location);
+	UFUNCTION()
+	void CallbackInputDoubleClicked(ETouchIndex::Type TouchIndex, FVector Location);
 private:
 	FVector Calculate_MoveDirectionVector();
 

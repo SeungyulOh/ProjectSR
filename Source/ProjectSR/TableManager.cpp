@@ -8,7 +8,7 @@
 
 void UTableManager::Init()
 {
-	DTCharacterTable = LoadTableFromPath(TEXT("DataTable'/Game/Data/DT_CharacterTable.DT_CharacterTable'"));
+	DTObjectTable = LoadTableFromPath(TEXT("DataTable'/Game/Data/DT_ObjectTable.DT_ObjectTable'"));
 	DTMapTable = LoadTableFromPath(TEXT("DataTable'/Game/Data/DT_MapTable.DT_MapTable'"));
 	DTWidgetTable = LoadTableFromPath(TEXT("DataTable'/Game/Data/DT_WidgetTable.DT_WidgetTable'"));
 	DTResourceCacheTable = LoadTableFromPath(TEXT("DataTable'/Game/Data/DT_ResourceCacheTable.DT_ResourceCacheTable'"));

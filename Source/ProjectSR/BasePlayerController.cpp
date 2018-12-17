@@ -7,7 +7,9 @@
 #include "StageGameMode.h"
 #include "ProjectSR.h"
 #include "WidgetLayoutLibrary.h"
+#include "UP_Ingame.h"
 #include "Engine/UserInterfaceSettings.h"
+#include "BaseCharacter.h"
 
 const float MaxPitch = -20.f;
 const float MinPitch = -60.f;
@@ -41,6 +43,7 @@ void ABasePlayerController::SetupInputComponent()
 		InputComponent->BindTouch(IE_Pressed, InputHelper, &UInputHelper::CallbackInputTouchBegin);
 		InputComponent->BindTouch(IE_Repeat, InputHelper, &UInputHelper::CallbackInputTouchOver);
 		InputComponent->BindTouch(IE_Released, InputHelper, &UInputHelper::CallbackInputTouchEnd);
+		InputComponent->BindTouch(IE_DoubleClick, InputHelper, &UInputHelper::CallbackInputDoubleClicked);
 		
 		/*Base Input Settings End*/
 	}
@@ -68,47 +71,71 @@ void ABasePlayerController::RemoveJoystick()
 
 void UInputHelper::CallbackAxis_MoveUpDown(float AxisValue)
 {
-	if (AxisValue == 0.f)
-	{
-		MoveAxis.X = AxisValue;
-		return;
-	}
-
 	
+
 	ABasePlayerController* Parent = Cast<ABasePlayerController>(GetOuter());
 	if (IsValid(Parent))
 	{
-		UCharacterMovementComponent* CharacterMovementComponent = Parent->GetCharacter()->GetCharacterMovement();
-		if (IsValid(CharacterMovementComponent))
+		if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
 		{
-			float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
-			MoveAxis.X = AxisValue;
-			FVector MoveDir = Calculate_MoveDirectionVector();
-			CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+			if (AxisValue == 0.f)
+			{
+				MoveAxis.X = AxisValue;
+				return;
+			}
+
+			UCharacterMovementComponent* CharacterMovementComponent = Parent->GetCharacter()->GetCharacterMovement();
+			if (IsValid(CharacterMovementComponent))
+			{
+				float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
+				MoveAxis.X = AxisValue;
+				FVector MoveDir = Calculate_MoveDirectionVector();
+				CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+			}
 		}
+		else
+		{
+			MoveAxis.Y = AxisValue;
+		}
+		
 	}
 }
 
 void UInputHelper::CallbackAxis_MoveLeftRight(float AxisValue)
 {
-	if (AxisValue == 0.f)
-	{
-		MoveAxis.Y = AxisValue;
-		return;
-	}
-
+	
 
 	ABasePlayerController* Parent = Cast<ABasePlayerController>(GetOuter());
 	if (IsValid(Parent))
 	{
-		UCharacterMovementComponent* CharacterMovementComponent = Parent->GetCharacter()->GetCharacterMovement();
-		if (IsValid(CharacterMovementComponent))
+		if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
 		{
-			float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
-			MoveAxis.Y = AxisValue;
-			FVector MoveDir = Calculate_MoveDirectionVector();
-			CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+			if (AxisValue == 0.f)
+			{
+				MoveAxis.Y = AxisValue;
+				return;
+			}
+
+			UCharacterMovementComponent* CharacterMovementComponent = Parent->GetCharacter()->GetCharacterMovement();
+			if (IsValid(CharacterMovementComponent))
+			{
+				float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
+				MoveAxis.Y = AxisValue;
+				FVector MoveDir = Calculate_MoveDirectionVector();
+				CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+			}
 		}
+		else
+		{
+			MoveAxis.X = AxisValue;
+			FString str = TEXT("x : ") + FString::SanitizeFloat(MoveAxis.X) + TEXT(" y : ") + FString::SanitizeFloat(MoveAxis.Y);
+			UE_LOG(LogClass, Log, TEXT("%s"), *str);
+			FVector2D Direction2D = FVector2D(-MoveAxis.X, MoveAxis.Y);
+			Direction2D = Direction2D.GetSafeNormal()*5.f;
+			UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(Direction2D);
+			UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Renderer.Reposition_SubUI();
+		}
+		
 	}
 }
 
@@ -206,6 +233,24 @@ void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector L
 	}
 	
 	
+}
+
+void UInputHelper::CallbackInputDoubleClicked(ETouchIndex::Type TouchIndex, FVector Location)
+{
+#if WITH_EDITOR
+	FString str = TEXT("CallbackInputTouchEnd idx : ") + FString::FromInt((int)TouchIndex) + TEXT(" Location : ") + FString::FromInt(Location.X) + TEXT(" ,") + FString::FromInt(Location.Y) + TEXT(" ,") + FString::FromInt(Location.Z);
+	UE_LOG(LogClass, Log, TEXT("%s"), *str);
+#endif
+
+	EUserModeEnum mode = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode();
+	if (mode == EUserModeEnum::ENORMAL)
+	{
+		ABaseCharacter* Bonnie = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerPawn(UUtilFunctionLibrary::GetMyWorld(), 0));
+		if (IsValid(Bonnie))
+		{
+			Bonnie->Jump();
+		}
+	}
 }
 
 FVector UInputHelper::Calculate_MoveDirectionVector()

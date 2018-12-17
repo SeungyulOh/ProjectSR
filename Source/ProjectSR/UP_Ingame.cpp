@@ -52,7 +52,7 @@ void UUP_Ingame::OnClick_ButtonReady()
 {
 	/*To Do : Need to cache resource later*/
 	UUtilFunctionLibrary::GetStageGameMode()->SetisMonsterSpawned();
-	UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::ETOPVIEW);
+	UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::ENORMAL);
 	/**/
 }
 
@@ -117,16 +117,7 @@ void UUP_Ingame::OnClick_ButtonPrev()
 		int32 MaxNum = UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Num();
 		if (UUtilFunctionLibrary::GetBuildingManager()->WallPoints.IsValidIndex(MaxNum - 1))
 		{
-			FVector TargetVec = UUtilFunctionLibrary::GetBuildingManager()->WallPoints[MaxNum - 1];
-
-			FVector2D ScreenVector;
-			UUtilFunctionLibrary::GetBasePlayerController()->ProjectWorldLocationToScreen(TargetVec, ScreenVector);
-			float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
-			const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
-			viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
-			ScreenVector /= viewScale;
-
-			Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ScreenVector.X, ScreenVector.Y));
+			Variables.SelectedPointonNavMesh = UUtilFunctionLibrary::GetBuildingManager()->WallPoints[MaxNum - 1];
 		}
 	}
 }
@@ -153,6 +144,7 @@ void UUP_Ingame::Callback_ClickedWhenBuildingMode(FVector ViewportLocation)
 			ASplineWall* SplineWall = Cast<ASplineWall>(outResult[i].GetActor());
 			if (SplineWall)
 			{
+				Variables.SelectedPointonNavMesh = outResult[i].ImpactPoint;
 				Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ViewportLocation.X, ViewportLocation.Y));
 				UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_WALLSELECTING);
 				UUtilFunctionLibrary::GetBuildingManager()->SelectedWalllately = SplineWall;
@@ -331,5 +323,24 @@ void FRenderer::Render()
 			variables->Button_GameStartMode->SetVisibility(ESlateVisibility::Visible);
 		else
 			variables->Button_GameStartMode->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void FRenderer::Reposition_SubUI()
+{
+	if (IsValid(variables->SubUIOverlay))
+	{
+		if (!variables->SubUIOverlay->IsVisible())
+			return;
+
+		FVector2D ScreenPos = FVector2D::ZeroVector;
+		if (UUtilFunctionLibrary::GetBasePlayerController()->ProjectWorldLocationToScreen(variables->SelectedPointonNavMesh , ScreenPos))
+		{
+			float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
+			const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+			viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+
+			variables->SubUIOverlay->SetRenderTranslation(ScreenPos / viewScale);
+		}
 	}
 }

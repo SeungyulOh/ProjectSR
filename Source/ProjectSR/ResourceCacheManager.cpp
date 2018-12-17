@@ -83,7 +83,7 @@ void UResourceCacheManager::Cache_Remains()
 		{
 			for (size_t i = 0; i < MapTableInfo->ActorIDList.Num(); ++i)
 			{
-				FTableInfos* CharacterTableInfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTCharacterTable, MapTableInfo->ActorIDList[i]);
+				FTableInfos* CharacterTableInfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTObjectTable, MapTableInfo->ActorIDList[i]);
 				if (CharacterTableInfo)
 				{
 					AssetsQueue.AddUnique(CharacterTableInfo->BlueprintClass.ToSoftObjectPath());

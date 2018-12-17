@@ -26,6 +26,18 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	
-	
+	void OnTakeDamage(float Damage);
+
+	void SetHPVisible();
+
+	FVector GetDamageSocketLocation();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
+	class UWidgetComponent* HPBarWidget = nullptr;
+
+	float HPShowElapsedTime = 0.f;
+	float HPShowLifeTime = 1.f;
+
+	float MaxHP = 100;
+	float CurHP = 100;
 };

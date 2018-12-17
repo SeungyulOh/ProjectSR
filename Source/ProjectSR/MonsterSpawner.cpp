@@ -29,7 +29,7 @@ void AMonsterSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FTableInfos* TableInfos = SRGAMEINSTANCE(this)->TableManager->GetTableInfo<FTableInfos>(SRGAMEINSTANCE(this)->TableManager->DTCharacterTable, TEXT("Orc"));
+	FTableInfos* TableInfos = SRGAMEINSTANCE(this)->TableManager->GetTableInfo<FTableInfos>(SRGAMEINSTANCE(this)->TableManager->DTObjectTable, TEXT("Orc"));
 	if (TableInfos && TableInfos->BlueprintClass.IsValid())
 	{
 		MonsterClass = TableInfos->BlueprintClass.Get();

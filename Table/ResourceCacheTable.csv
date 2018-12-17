@@ -1,2 +1,3 @@
 ,CacheObject
 Wall,StaticMesh'/Game/Shaders/ETC/BlockingWall/SM/Wall.Wall'
+ArrowHit,ParticleSystem'/Game/FX/Battle/Hit/FX_Hit_Com_Blood.FX_Hit_Com_Blood'

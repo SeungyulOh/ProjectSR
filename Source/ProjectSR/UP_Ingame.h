@@ -50,6 +50,8 @@ struct PROJECTSR_API FRenderer
 	void Prepare();
 	void Render();
 
+	void Reposition_SubUI();
+
 	FVariables* variables;
 };
 

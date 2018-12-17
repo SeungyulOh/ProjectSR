@@ -29,7 +29,7 @@ void AStageGameMode::BeginPlay()
 	UTableManager* TableManager = SRGAMEINSTANCE(this)->TableManager;
 	if (TableManager)
 	{
-		FTableInfos* tableinfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTCharacterTable, TEXT("Nexus"));
+		FTableInfos* tableinfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTObjectTable, TEXT("Nexus"));
 		if (tableinfo)
 		{
 			UClass* TargetClass = nullptr;
@@ -114,7 +114,7 @@ void AStageGameMode::DoTasks()
 				PCM->SetViewTarget(cachedViewtarget, SRGAMEINSTANCE(this)->BlendParams);
 
 
-			UUtilFunctionLibrary::GetBasePlayerController()->CreateJoystick();
+			//UUtilFunctionLibrary::GetBasePlayerController()->CreateJoystick();
 		}
 	}break;
 	case EUserModeEnum::ETOPVIEW:
@@ -130,7 +130,7 @@ void AStageGameMode::DoTasks()
 				PCM->SetViewTarget(DynamicCamera, SRGAMEINSTANCE(this)->BlendParams);
 		}
 
-		UUtilFunctionLibrary::GetBasePlayerController()->RemoveJoystick();
+		//UUtilFunctionLibrary::GetBasePlayerController()->RemoveJoystick();
 	}break;
 	case EUserModeEnum::EBUILDING_IDLE:
 		BuildingManager->WallPoints.Empty();
