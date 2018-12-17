@@ -23,6 +23,7 @@ public:
 	static class ABaseLevelScriptActor*		 GetBaseLevelScriptActor();
 	static class UBuildingManager*			 GetBuildingManager();
 	static void PlayWidgetAnimation(UUserWidget* widget, FString AnimnName , bool bLoop , EUMGSequencePlayMode::Type type);
+	static bool DeprojectViewportPointToNavMesh(FVector2D viewportLoc, FVector& outLoc);
 	
 	
 };

@@ -85,6 +85,10 @@ void AMonsterSpawner::Tick(float DeltaTime)
 
 void AMonsterSpawner::Callback_DrawPath()
 {
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
+		return;
+
+
 	TArray<AActor*> OutActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
 	FVector TargetLocation = OutActors[0]->GetActorLocation();

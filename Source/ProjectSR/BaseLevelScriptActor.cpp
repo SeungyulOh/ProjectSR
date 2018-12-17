@@ -21,8 +21,8 @@ void ABaseLevelScriptActor::Callback_DynamicCameraMove(FVector2D Direction)
 	FVector UpVector = DynamicCamera->GetActorUpVector();
 
 
-	FVector NewLocation = CurrentVector + RightVector * Direction.X*2;
-	NewLocation -= UpVector * Direction.Y*2;
+	FVector NewLocation = CurrentVector - RightVector * Direction.X*2;
+	NewLocation += UpVector * Direction.Y*2;
 
 	DynamicCamera->SetActorLocation(NewLocation);
 }

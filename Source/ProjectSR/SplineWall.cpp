@@ -49,7 +49,13 @@ void ASplineWall::Refresh(TArray<FVector> InPoints)
 {
 	if (IsValid(SplineComponent))
 	{
+		for (size_t i = 0; i < SplineMeshArray.Num(); ++i)
+		{
+			SplineMeshArray[i]->DestroyComponent();
+		}
+		SplineMeshArray.Empty();
 		SplineComponent->ClearSplinePoints();
+
 		for (size_t i = 0; i < InPoints.Num(); ++i)
 		{
 			SplineComponent->AddSplinePoint(InPoints[i] , ESplineCoordinateSpace::World);

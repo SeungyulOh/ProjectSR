@@ -7,6 +7,9 @@
 #include "BasePlayerController.h"
 #include "StageGameMode.h"
 #include "UserWidget.h"
+#include "Engine/UserInterfaceSettings.h"
+#include "WidgetLayoutLibrary.h"
+#include "NavigationSystem.h"
 
 
 
@@ -76,4 +79,41 @@ void UUtilFunctionLibrary::PlayWidgetAnimation(UUserWidget* widget, FString Anim
 		if (IsValid(*FoundAnim))
 			widget->PlayAnimation(*FoundAnim , 0.f, !bLoop , type);
 	}
+}
+
+bool UUtilFunctionLibrary::DeprojectViewportPointToNavMesh(FVector2D viewportLoc, FVector& outLoc)
+{
+	float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
+	const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+	viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+	viewportLoc *= viewScale;
+
+	FVector WorldLocation = FVector::ZeroVector;
+	FVector WorldDirection = FVector::ZeroVector;
+	bool bSuccess = UUtilFunctionLibrary::GetBasePlayerController()->DeprojectScreenPositionToWorld(viewportLoc.X, viewportLoc.Y, WorldLocation, WorldDirection);
+	if (bSuccess)
+	{
+		TArray<FHitResult> outResult;
+		UUtilFunctionLibrary::GetMyWorld()->LineTraceMultiByChannel(outResult, WorldLocation, WorldLocation + WorldDirection * 10000, ECollisionChannel::ECC_WorldStatic);
+		for (size_t i = 0; i < outResult.Num(); ++i)
+		{
+			ABlockingVolume* BlockingVolume = Cast<ABlockingVolume>(outResult[i].GetActor());
+			if (BlockingVolume)
+			{
+				UNavigationSystemV1* NavSystem = Cast<UNavigationSystemV1>(UUtilFunctionLibrary::GetMyWorld()->GetNavigationSystem());
+				if (NavSystem)
+				{
+					FNavLocation outdata;
+					bool bNavSuccess = NavSystem->ProjectPointToNavigation(outResult[i].ImpactPoint, outdata);
+					if (bNavSuccess)
+					{
+						outLoc = outdata.Location;
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
 }

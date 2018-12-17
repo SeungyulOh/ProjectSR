@@ -112,6 +112,9 @@ void AStageGameMode::DoTasks()
 		{
 			if (IsValid(cachedViewtarget))
 				PCM->SetViewTarget(cachedViewtarget, SRGAMEINSTANCE(this)->BlendParams);
+
+
+			UUtilFunctionLibrary::GetBasePlayerController()->CreateJoystick();
 		}
 	}break;
 	case EUserModeEnum::ETOPVIEW:
@@ -126,42 +129,18 @@ void AStageGameMode::DoTasks()
 			if (IsValid(DynamicCamera))
 				PCM->SetViewTarget(DynamicCamera, SRGAMEINSTANCE(this)->BlendParams);
 		}
+
+		UUtilFunctionLibrary::GetBasePlayerController()->RemoveJoystick();
 	}break;
 	case EUserModeEnum::EBUILDING_IDLE:
-		break;
-	case EUserModeEnum::EBUILDING_START:
-	{
 		BuildingManager->WallPoints.Empty();
-
-		FVector2D ViewportLocation = IngameWidget->Variables.SubUIOverlay->RenderTransform.Translation;
-
-		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
-		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
-		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
-
-		ViewportLocation *= viewScale;
-
-		FVector WorldLocation = FVector::ZeroVector;
-		FVector WorldDirection = FVector::ZeroVector;
-		bool bSuccess = UUtilFunctionLibrary::GetBasePlayerController()->DeprojectScreenPositionToWorld(ViewportLocation.X, ViewportLocation.Y, WorldLocation, WorldDirection);
-		if (bSuccess)
-		{
-			TArray<FHitResult> outResult;
-			UUtilFunctionLibrary::GetMyWorld()->LineTraceMultiByChannel(outResult, WorldLocation, WorldLocation + WorldDirection * 10000, ECollisionChannel::ECC_WorldStatic);
-			for (size_t i = 0; i < outResult.Num(); ++i)
-			{
-				ABlockingVolume* BlockingVolume = Cast<ABlockingVolume>(outResult[i].GetActor());
-				if (BlockingVolume)
-				{
-					DrawDebugBox(UUtilFunctionLibrary::GetMyWorld(), outResult[i].ImpactPoint, FVector(10.f, 10.f, 10.f), FColor::Cyan, false, 10.f, 0.f, 10.f);
-					BuildingManager->WallPoints.Emplace(outResult[i].ImpactPoint);
-
-					BuildingManager->CurrentWall = UUtilFunctionLibrary::GetMyWorld()->SpawnActor<ASplineWall>(outResult[i].ImpactPoint , FRotator::ZeroRotator);
-					BuildingManager->WallArray.Emplace(BuildingManager->CurrentWall);
-					break;
-				}
-			}
-		}
+		break;
+	case EUserModeEnum::EBUILDING_ADDSTART:
+	{
+	}break;
+	case EUserModeEnum::EBUILDING_ADDING:
+	{
+		
 	}break;
 	case EUserModeEnum::EBUILDING_END:
 	{

@@ -48,6 +48,24 @@ void ABasePlayerController::SetupInputComponent()
 }
 
 
+void ABasePlayerController::CreateJoystick()
+{
+	if (CurrentTouchInterface == nullptr)
+	{
+		FStringAssetReference TouchInterfaceName(FString("/Game/Blueprints/BaseTouchInterface.BaseTouchInterface"));
+		UTouchInterface* ManualTouchInterface = LoadObject<UTouchInterface>(NULL, *TouchInterfaceName.ToString());
+		if (IsValid(ManualTouchInterface))
+		{
+			ActivateTouchInterface(ManualTouchInterface);
+		}
+	}
+}
+
+void ABasePlayerController::RemoveJoystick()
+{
+	ActivateTouchInterface(nullptr);
+}
+
 void UInputHelper::CallbackAxis_MoveUpDown(float AxisValue)
 {
 	if (AxisValue == 0.f)
@@ -141,9 +159,8 @@ void UInputHelper::CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector
 			CurrentPos = StartPos;
 		}
 	}
-	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_IDLE ||
-		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_START ||
-		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_END)
+	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() >= EUserModeEnum::EBUILDING_IDLE &&
+		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() <= EUserModeEnum::EBUILDING_END)
 	{
 		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
 		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());

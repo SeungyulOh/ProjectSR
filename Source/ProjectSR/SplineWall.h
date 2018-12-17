@@ -29,7 +29,6 @@ public:
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly , Category = "ASplineWall")
 	class USplineComponent*		SplineComponent;
 
-	UPROPERTY()
 	TArray<class USplineMeshComponent*> SplineMeshArray;
 	
 	TWeakObjectPtr<class UStaticMesh> CachedWallMesh;

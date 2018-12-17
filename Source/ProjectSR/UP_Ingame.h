@@ -25,9 +25,20 @@ struct PROJECTSR_API FVariables
 	class UButton*	Button_Firstspawn;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
 	class UButton*	Button_Confirm;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
+	class UButton*	Button_Remove;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
+	class UButton*	Button_Complete;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
+	class UButton*	Button_Prev;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
 	class UTextBlock*	BuildingButtonText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
+	class UTextBlock*	CamButtonText;
+
+
+	FVector SelectedPointonNavMesh = FVector::ZeroVector;
 
 };
 
@@ -62,6 +73,12 @@ public:
 	void OnClick_ButtonFirstSpawn();
 	UFUNCTION(BlueprintCallable)
 	void OnClick_ButtonConfirm();
+	UFUNCTION(BlueprintCallable)
+	void OnClick_ButtonRemove();
+	UFUNCTION(BlueprintCallable)
+	void OnClick_ButtonComplete();
+	UFUNCTION(BlueprintCallable)
+	void OnClick_ButtonPrev();
 
 	UFUNCTION()
 	void Callback_ClickedWhenBuildingMode(FVector ViewportLocation);

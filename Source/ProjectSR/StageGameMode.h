@@ -67,7 +67,9 @@ public:
 	TArray<class ASplineWall*> WallArray;
 
 	UPROPERTY()
-	class ASplineWall*	CurrentWall;
+	TWeakObjectPtr<class ASplineWall>	SpawnedWalllately;
+	UPROPERTY()
+	TWeakObjectPtr<class ASplineWall>	SelectedWalllately;
 
 	TArray<FVector> WallPoints;
 

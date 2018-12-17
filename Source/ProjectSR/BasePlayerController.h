@@ -55,7 +55,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	
-	
+	void CreateJoystick();
+	void RemoveJoystick();
 
 	/*Input Helper*/
 private:
