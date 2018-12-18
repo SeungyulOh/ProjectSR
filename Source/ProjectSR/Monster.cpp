@@ -8,6 +8,9 @@
 #include "TableInfos.h"
 #include "Kismet/GameplayStatics.h"
 #include "UC_HpBar.h"
+#include "StageGameMode.h"
+#include "BasePlayerController.h"
+#include "UtilFunctionLibrary.h"
 
 
 // Sets default values
@@ -18,6 +21,8 @@ AMonster::AMonster()
 
 	HPBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBar"));
 	HPBarWidget->SetupAttachment(RootComponent);
+
+
 
 }
 
@@ -43,6 +48,16 @@ void AMonster::Tick(float DeltaTime)
 	{
 		HPShowElapsedTime += DeltaTime;
 		HPBarWidget->SetVisibility(true);
+
+		if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
+		{
+			FRotator CamRot = UUtilFunctionLibrary::GetBasePlayerController()->PlayerCameraManager->GetCameraRotation();
+			CamRot.Yaw = 0.f;
+			CamRot.Roll = 0.f;
+			CamRot.Pitch = -CamRot.Pitch;
+			
+			HPBarWidget->SetRelativeRotation(CamRot);
+		}
 	}
 	else
 		HPBarWidget->SetVisibility(false);

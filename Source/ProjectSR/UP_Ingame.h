@@ -37,6 +37,9 @@ struct PROJECTSR_API FVariables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
 	class UTextBlock*	CamButtonText;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
+	class UUC_SkillSelector*	SkillSelector;
+
 
 	FVector SelectedPointonNavMesh = FVector::ZeroVector;
 

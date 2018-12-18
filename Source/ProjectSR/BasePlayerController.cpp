@@ -10,6 +10,7 @@
 #include "UP_Ingame.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "BaseCharacter.h"
+#include "UC_SkillSelector.h"
 
 const float MaxPitch = -20.f;
 const float MinPitch = -60.f;
@@ -128,8 +129,6 @@ void UInputHelper::CallbackAxis_MoveLeftRight(float AxisValue)
 		else
 		{
 			MoveAxis.X = AxisValue;
-			FString str = TEXT("x : ") + FString::SanitizeFloat(MoveAxis.X) + TEXT(" y : ") + FString::SanitizeFloat(MoveAxis.Y);
-			UE_LOG(LogClass, Log, TEXT("%s"), *str);
 			FVector2D Direction2D = FVector2D(-MoveAxis.X, MoveAxis.Y);
 			Direction2D = Direction2D.GetSafeNormal()*5.f;
 			UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(Direction2D);
@@ -195,6 +194,23 @@ void UInputHelper::CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector
 
 		UUtilFunctionLibrary::GetBuildingManager()->OnClickedWhenBuildingMode.Broadcast(Location / viewScale);
 	}
+	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
+	{
+		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+		{
+			CurrentTouchType = TouchIndex;
+			StartPos = FVector2D(Location.X, Location.Y);
+			CurrentPos = StartPos;
+
+			UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+			if (IsValid(IngameWidget))
+			{
+				UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
+				if (IsValid(Skillselector))
+					Skillselector->SetForceY(0.f);
+			}
+		}
+	}
 		
 }
 
@@ -205,16 +221,34 @@ void UInputHelper::CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector 
 	UE_LOG(LogClass, Log, TEXT("%s"), *str);
 #endif
 
-	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() != EUserModeEnum::ETOPVIEW)
-		return;
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ETOPVIEW)
+	{
+		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+			return;
 
-	if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
-		return;
+		DirectionVector = FVector2D(Location.X, Location.Y) - CurrentPos;
+		UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(DirectionVector);
+		CurrentPos = FVector2D(Location.X, Location.Y);
+	}
+	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
+	{
+		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+			return;
 
-	
-	DirectionVector = FVector2D(Location.X , Location.Y) - CurrentPos;
-	UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(DirectionVector);
-	CurrentPos = FVector2D(Location.X, Location.Y);
+		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+		if (IsValid(IngameWidget))
+		{
+			UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
+			if (IsValid(Skillselector))
+			{
+				float DeltaY = Location.Y - CurrentPos.Y;
+				Skillselector->SetForceY(DeltaY);
+				CurrentPos = FVector2D(Location.X, Location.Y);
+			}
+		}
+
+		
+	}
 }
 
 void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector Location)
@@ -224,7 +258,8 @@ void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector L
 	UE_LOG(LogClass, Log, TEXT("%s"), *str);
 #endif
 	EUserModeEnum mode = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode();
-	if (mode == EUserModeEnum::ETOPVIEW)
+	if (mode == EUserModeEnum::ETOPVIEW || 
+		mode == EUserModeEnum::ENORMAL)
 	{
 		if (CurrentTouchType != ETouchIndex::MAX_TOUCHES)
 		{
