@@ -13,6 +13,7 @@
 #include "WidgetBlueprintLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "WidgetLayoutLibrary.h"
+#include "BaseLevelScriptActor.h"
 #include "SplineWall.h"
 
 AStageGameMode::AStageGameMode()
@@ -60,38 +61,7 @@ void AStageGameMode::BeginPlay()
 		}
 	}
 
-	if (TableManager)
-	{
-		FTableInfos* tableinfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTObjectTable, TEXT("Bonnie"));
-		if (tableinfo)
-		{
-			UClass* TargetClass = nullptr;
-			if (!tableinfo->BlueprintClass.IsValid())
-			{
-#ifdef WITH_EDITOR
-				TargetClass = tableinfo->BlueprintClass.LoadSynchronous();
-#endif
-			}
-			else
-			{
-				TargetClass = tableinfo->BlueprintClass.Get();
-			}
-
-
-			/*Spawn Nexus*/
-			TArray<AActor*> OutActors;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
-
-			FVector TargetLocation = OutActors[0]->GetActorLocation();
-			FNavLocation OutLocation;
-			UMapFunctionLibrary::ProjectPointToNavigation(TargetLocation, OutLocation);
-			TargetLocation = OutLocation.Location;
-
-			FTransform SpawnTransform;
-			SpawnTransform.SetTranslation(TargetLocation);
-			BaseCharacter = GetWorld()->SpawnActor<ABaseCharacter>(TargetClass, SpawnTransform);
-		}
-	}
+	
 
 	USRGameInstance* GameInst = SRGAMEINSTANCE(this);
 	if (GameInst)

@@ -20,6 +20,7 @@ public:
 	UFUNCTION()
 	void Callback_DynamicCameraMove(FVector2D Direction);
 	
+	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category = "ABaseLevelScriptActor")
 	class ACameraActor* DynamicCamera = nullptr;

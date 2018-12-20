@@ -5,7 +5,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "BaseCharacter.h"
 #include "UtilFunctionLibrary.h"
-
+#include "StageGameMode.h"
+#include "TableManager.h"
+#include "TableInfos.h"
+#include "MapFunctionLibrary.h"
 
 
 
@@ -15,16 +18,52 @@ void ABaseLevelScriptActor::BeginPlay()
 
 	StartCameraPostion = DynamicCamera->GetActorLocation();
 
-	APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-	if (PCM)
+	UTableManager* TableManager = SRGAMEINSTANCE(this)->TableManager;
+	if (TableManager)
 	{
-		FAttachmentTransformRules rule = FAttachmentTransformRules::KeepRelativeTransform;
-		rule.LocationRule = EAttachmentRule::KeepRelative;
-		rule.RotationRule = EAttachmentRule::KeepWorld;
+		FTableInfos* tableinfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTObjectTable, TEXT("Bonnie"));
+		if (tableinfo)
+		{
+			UClass* TargetClass = nullptr;
+			if (!tableinfo->BlueprintClass.IsValid())
+			{
+#ifdef WITH_EDITOR
+				TargetClass = tableinfo->BlueprintClass.LoadSynchronous();
+#endif
+			}
+			else
+			{
+				TargetClass = tableinfo->BlueprintClass.Get();
+			}
 
-		BaseCamera->AttachToActor(UUtilFunctionLibrary::GetMyCharacter(), rule);
-		PCM->SetViewTarget(BaseCamera);
+			TArray<AActor*> OutActors;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
+
+			FVector TargetLocation = OutActors[0]->GetActorLocation();
+			FNavLocation OutLocation;
+			UMapFunctionLibrary::ProjectPointToNavigation(TargetLocation, OutLocation);
+			TargetLocation = OutLocation.Location;
+
+			FTransform SpawnTransform;
+			SpawnTransform.SetTranslation(TargetLocation);
+			ABaseCharacter* BaseCharacter = GetWorld()->SpawnActor<ABaseCharacter>(TargetClass, SpawnTransform);
+			UUtilFunctionLibrary::GetStageGameMode()->BaseCharacter = BaseCharacter;
+
+			APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+			if (PCM)
+			{
+				FAttachmentTransformRules rule = FAttachmentTransformRules::KeepRelativeTransform;
+				rule.LocationRule = EAttachmentRule::KeepRelative;
+				rule.RotationRule = EAttachmentRule::KeepWorld;
+
+				BaseCamera->AttachToActor(BaseCharacter, rule);
+				PCM->SetViewTarget(BaseCamera);
+			}
+		}
 	}
+
+	
+	
 }
 
 void ABaseLevelScriptActor::Callback_DynamicCameraMove(FVector2D Direction)
@@ -40,3 +79,4 @@ void ABaseLevelScriptActor::Callback_DynamicCameraMove(FVector2D Direction)
 
 	DynamicCamera->SetActorLocation(NewLocation);
 }
+
