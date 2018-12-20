@@ -8,6 +8,9 @@
 #include "ProjectSR.h"
 #include "UtilFunctionLibrary.h"
 #include "Projectile.h"
+#include "BaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "TowerSpawner.h"
 
 
 
@@ -50,6 +53,48 @@ void UFireProjectileNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 					}
 				}
 			}
+		}
+	}
+}
+
+void UTowerBuildingNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	ABaseCharacter* Parent = Cast<ABaseCharacter>(MeshComp->GetOwner());
+	if (IsValid(Parent))
+	{
+		if (Parent->TowerBuildingHelper.HammerHitCount == 0)
+		{
+			UTableManager* TableManager = SRGAMEINSTANCE(this)->TableManager;
+			if (TableManager)
+			{
+				FTableInfos* tableinfo = TableManager->GetTableInfo<FTableInfos>(TableManager->DTObjectTable, TEXT("TowerSpawner"));
+				if (tableinfo)
+				{
+					if (tableinfo->BlueprintClass.IsValid())
+					{
+						FVector candidateVector = UUtilFunctionLibrary::GetMyCharacter()->TowerBuildingHelper.CandidateTower->GetActorLocation();
+						candidateVector.Z += 100.f;
+
+						TSubclassOf<ATowerSpawner> spawnerclass = tableinfo->BlueprintClass.Get();
+						FTransform spawntransform;
+						spawntransform.SetLocation(candidateVector);
+
+						ATowerSpawner* towerspawner = UUtilFunctionLibrary::GetMyWorld()->SpawnActor<ATowerSpawner>(spawnerclass , spawntransform);
+						towerspawner->TargetTower = UUtilFunctionLibrary::GetMyCharacter()->TowerBuildingHelper.CandidateTower;
+						if (IsValid(towerspawner))
+							Parent->TowerBuildingHelper.TowerSpawnerArray.Emplace(towerspawner);
+					}
+				}
+			}
+		}
+		int32 MaxIdx = Parent->TowerBuildingHelper.TowerSpawnerArray.Num() - 1;
+		if (Parent->TowerBuildingHelper.TowerSpawnerArray.IsValidIndex(MaxIdx))
+		{
+			Parent->TowerBuildingHelper.HammerHitCount = Parent->TowerBuildingHelper.HammerHitCount + 1;
+
+			Parent->TowerBuildingHelper.TowerSpawnerArray[MaxIdx]->CurveActiveTime = 0.f;
+			if (Parent->TowerBuildingHelper.HammerHitCount == 3)
+				Parent->SetState(ECharacterState::ENORMAL);
 		}
 	}
 }

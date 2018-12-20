@@ -18,3 +18,13 @@ class PROJECTSR_API UFireProjectileNotify : public UAnimNotify
 	
 	
 };
+
+UCLASS()
+class PROJECTSR_API UTowerBuildingNotify : public UAnimNotify
+{
+	GENERATED_BODY()
+
+	void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+
+};

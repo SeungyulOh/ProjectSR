@@ -11,6 +11,9 @@
 #include "Engine/UserInterfaceSettings.h"
 #include "BaseCharacter.h"
 #include "UC_SkillSelector.h"
+#include "Tower.h"
+#include "TableManager.h"
+#include "TableInfos.h"
 
 const float MaxPitch = -20.f;
 const float MinPitch = -60.f;
@@ -52,6 +55,34 @@ void ABasePlayerController::SetupInputComponent()
 }
 
 
+void ABasePlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+#if WITH_EDITOR
+	if (WasInputKeyJustPressed(EKeys::PageUp))
+	{
+		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+		if (IsValid(IngameWidget))
+		{
+			UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
+			if (IsValid(Skillselector))
+				Skillselector->SetForceY(5.f);
+		}
+	}
+	else if (WasInputKeyJustPressed(EKeys::PageDown))
+	{
+		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+		if (IsValid(IngameWidget))
+		{
+			UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
+			if (IsValid(Skillselector))
+				Skillselector->SetForceY(-5.f);
+		}
+	}
+#endif
+}
+
 void ABasePlayerController::CreateJoystick()
 {
 	if (CurrentTouchInterface == nullptr)
@@ -85,13 +116,18 @@ void UInputHelper::CallbackAxis_MoveUpDown(float AxisValue)
 				return;
 			}
 
-			UCharacterMovementComponent* CharacterMovementComponent = Parent->GetCharacter()->GetCharacterMovement();
-			if (IsValid(CharacterMovementComponent))
+			ECharacterState CharacterState = UUtilFunctionLibrary::GetMyCharacter()->GetCurrentState();
+			if (CharacterState == ECharacterState::ENORMAL || 
+				CharacterState == ECharacterState::EWAITINGFORBUILDINGSPOT)
 			{
-				float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
-				MoveAxis.X = AxisValue;
-				FVector MoveDir = Calculate_MoveDirectionVector();
-				CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+				UCharacterMovementComponent* CharacterMovementComponent = UUtilFunctionLibrary::GetMyCharacter()->GetCharacterMovement();
+				if (IsValid(CharacterMovementComponent))
+				{
+					float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
+					MoveAxis.X = AxisValue;
+					FVector MoveDir = Calculate_MoveDirectionVector();
+					CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+				}
 			}
 		}
 		else
@@ -117,13 +153,18 @@ void UInputHelper::CallbackAxis_MoveLeftRight(float AxisValue)
 				return;
 			}
 
-			UCharacterMovementComponent* CharacterMovementComponent = Parent->GetCharacter()->GetCharacterMovement();
-			if (IsValid(CharacterMovementComponent))
+			ECharacterState CharacterState = UUtilFunctionLibrary::GetMyCharacter()->GetCurrentState();
+			if (CharacterState == ECharacterState::ENORMAL ||
+				CharacterState == ECharacterState::EWAITINGFORBUILDINGSPOT)
 			{
-				float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
-				MoveAxis.Y = AxisValue;
-				FVector MoveDir = Calculate_MoveDirectionVector();
-				CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+				UCharacterMovementComponent* CharacterMovementComponent = UUtilFunctionLibrary::GetMyCharacter()->GetCharacterMovement();
+				if (IsValid(CharacterMovementComponent))
+				{
+					float MaxSpeed = CharacterMovementComponent->GetMaxSpeed();
+					MoveAxis.Y = AxisValue;
+					FVector MoveDir = Calculate_MoveDirectionVector();
+					CharacterMovementComponent->RequestDirectMove(MoveDir * MaxSpeed, false);
+				}
 			}
 		}
 		else
@@ -146,7 +187,7 @@ void UInputHelper::CallbackAxis_CamUpDown(float AxisValue)
 	ABasePlayerController* Parent = Cast<ABasePlayerController>(GetOuter());
 	if (IsValid(Parent))
 	{
-		USpringArmComponent* SpringArm = Parent->GetCharacter()->FindComponentByClass<USpringArmComponent>();
+		USpringArmComponent* SpringArm = UUtilFunctionLibrary::GetBaseCamera()->FindComponentByClass<USpringArmComponent>();
 		FRotator Rot = SpringArm->GetRelativeTransform().Rotator();
 		Rot.Pitch += AxisValue;
 		Rot.Pitch = FMath::Clamp<float>(Rot.Pitch, MinPitch, MaxPitch);
@@ -162,7 +203,7 @@ void UInputHelper::CallbackAxis_CamLeftRight(float AxisValue)
 	ABasePlayerController* Parent = Cast<ABasePlayerController>(GetOuter());
 	if (IsValid(Parent))
 	{
-		USpringArmComponent* SpringArm = Parent->GetCharacter()->FindComponentByClass<USpringArmComponent>();
+		USpringArmComponent* SpringArm = UUtilFunctionLibrary::GetBaseCamera()->FindComponentByClass<USpringArmComponent>();
 		FRotator Rot = SpringArm->GetRelativeTransform().Rotator();
 		Rot.Yaw += AxisValue;
 		SpringArm->SetRelativeRotation(Rot);
@@ -202,12 +243,19 @@ void UInputHelper::CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector
 			StartPos = FVector2D(Location.X, Location.Y);
 			CurrentPos = StartPos;
 
-			UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
-			if (IsValid(IngameWidget))
+			if (UUtilFunctionLibrary::GetMyCharacter()->GetCurrentState() == ECharacterState::EWAITINGFORBUILDINGSPOT)
 			{
-				UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
-				if (IsValid(Skillselector))
-					Skillselector->SetForceY(0.f);
+				UUtilFunctionLibrary::GetMyCharacter()->TowerBuildingHelper.OnTouchBegin(Location);
+			}
+			else
+			{
+				UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+				if (IsValid(IngameWidget))
+				{
+					UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
+					if (IsValid(Skillselector))
+						Skillselector->SetForceY(0.f);
+				}
 			}
 		}
 	}
@@ -235,19 +283,24 @@ void UInputHelper::CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector 
 		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
 			return;
 
-		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
-		if (IsValid(IngameWidget))
+		if (UUtilFunctionLibrary::GetMyCharacter()->GetCurrentState() == ECharacterState::EWAITINGFORBUILDINGSPOT)
 		{
-			UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
-			if (IsValid(Skillselector))
+			UUtilFunctionLibrary::GetMyCharacter()->TowerBuildingHelper.OnTouchOver(Location);
+		}
+		else
+		{
+			UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+			if (IsValid(IngameWidget))
 			{
-				float DeltaY = Location.Y - CurrentPos.Y;
-				Skillselector->SetForceY(DeltaY);
-				CurrentPos = FVector2D(Location.X, Location.Y);
+				UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
+				if (IsValid(Skillselector))
+				{
+					float DeltaY = Location.Y - CurrentPos.Y;
+					Skillselector->SetForceY(DeltaY);
+					CurrentPos = FVector2D(Location.X, Location.Y);
+				}
 			}
 		}
-
-		
 	}
 }
 
@@ -262,8 +315,13 @@ void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector L
 		mode == EUserModeEnum::ENORMAL)
 	{
 		if (CurrentTouchType != ETouchIndex::MAX_TOUCHES)
-		{
 			CurrentTouchType = ETouchIndex::MAX_TOUCHES;
+		else
+			return;
+
+		if (UUtilFunctionLibrary::GetMyCharacter()->GetCurrentState() == ECharacterState::EWAITINGFORBUILDINGSPOT)
+		{
+			UUtilFunctionLibrary::GetMyCharacter()->TowerBuildingHelper.OnTouchEnd(Location);
 		}
 	}
 	
@@ -280,7 +338,7 @@ void UInputHelper::CallbackInputDoubleClicked(ETouchIndex::Type TouchIndex, FVec
 	EUserModeEnum mode = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode();
 	if (mode == EUserModeEnum::ENORMAL)
 	{
-		ABaseCharacter* Bonnie = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerPawn(UUtilFunctionLibrary::GetMyWorld(), 0));
+		ABaseCharacter* Bonnie = UUtilFunctionLibrary::GetMyCharacter();
 		if (IsValid(Bonnie))
 		{
 			Bonnie->Jump();
@@ -293,7 +351,7 @@ FVector UInputHelper::Calculate_MoveDirectionVector()
 	ABasePlayerController* Parent = Cast<ABasePlayerController>(GetOuter());
 	if (IsValid(Parent))
 	{
-		USpringArmComponent* SpringArm = Parent->GetCharacter()->FindComponentByClass<USpringArmComponent>();
+		USpringArmComponent* SpringArm = UUtilFunctionLibrary::GetBaseCamera()->FindComponentByClass<USpringArmComponent>();
 		FRotator Rot = SpringArm->GetRelativeTransform().Rotator();
 
 		FVector ForwardVector = Rot.RotateVector(FVector(1.f, 0.f, 0.f));

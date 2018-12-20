@@ -6,6 +6,14 @@
 #include "Blueprint/UserWidget.h"
 #include "UC_SkillSelector.generated.h"
 
+UENUM(BlueprintType)
+enum class EUserTouchType : uint8
+{
+	ESIMPLETOUCH,
+	ETOUCH2SEC,
+	EEND,
+};
+
 /**
  * 
  */
@@ -20,30 +28,42 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnButtonPressed();
 	UFUNCTION(BlueprintCallable)
-	void OnButtonHovered();
-	UFUNCTION(BlueprintCallable)
 	void OnButtonReleased();
-	
 
 	void SetForceY(float inForce);
 	void Scrolling();
-	void FindSelectedButton();
+	void FindCandidateButton();
+
+	void Enter_Touch2SecMode();
 	
 public:
 	UPROPERTY(EditAnywhere , BlueprintReadWrite , Category = "UUC_SkillSelector")
 	TArray<class UButton*> ButtonArray;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillSelector")
+	class UButton* Button_Root;
+	UPROPERTY()
+	class UButton* Button_Candidate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillSelector")
+	class UImage* SelectedImage = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillSelector")
 	class UImage*	CircleImage = nullptr;
 
 private:
-	bool bButtonPressed = false;
-	float Radius = 225.f;
+	EUserTouchType TouchType = EUserTouchType::EEND;
 
+	float Radius = 225.f;
 	float ForceY = 0.f;
 	float Friction = 20.f;
 	float MaxForce = 20.f;
 	float ForceOffSet = 0.004f;
+
+
+	float TouchElapsedTime = 0.f;
+	float TouchStateTransitionTime = 1.f;
+
+	FIntRect RootButtonPos;
 	
 	
 };

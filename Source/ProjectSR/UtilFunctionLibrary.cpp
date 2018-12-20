@@ -10,6 +10,8 @@
 #include "Engine/UserInterfaceSettings.h"
 #include "WidgetLayoutLibrary.h"
 #include "NavigationSystem.h"
+#include "BaseCharacter.h"
+#include "EntityRenderComponent.h"
 
 
 
@@ -19,6 +21,16 @@ ACameraActor* UUtilFunctionLibrary::GetDynamicCamera()
 	ABaseLevelScriptActor* BaseLevelScriptActor = Cast<ABaseLevelScriptActor>(SRGAMEINSTANCE(GEngine)->GetWorld()->GetLevelScriptActor());
 	if (IsValid(BaseLevelScriptActor))
 		return BaseLevelScriptActor->DynamicCamera;
+
+
+	return nullptr;
+}
+
+AActor* UUtilFunctionLibrary::GetBaseCamera()
+{
+	ABaseLevelScriptActor* BaseLevelScriptActor = Cast<ABaseLevelScriptActor>(SRGAMEINSTANCE(GEngine)->GetWorld()->GetLevelScriptActor());
+	if (IsValid(BaseLevelScriptActor))
+		return BaseLevelScriptActor->BaseCamera;
 
 
 	return nullptr;
@@ -40,6 +52,20 @@ ABasePlayerController* UUtilFunctionLibrary::GetBasePlayerController()
 class AStageGameMode* UUtilFunctionLibrary::GetStageGameMode()
 {
 	return Cast<AStageGameMode>(UGameplayStatics::GetGameMode(SRGAMEINSTANCE(GEngine)->GetWorld()));
+}
+
+class UEntityRenderComponent* UUtilFunctionLibrary::GetRenderComponent(AActor* TargetActor)
+{
+	UEntityRenderComponent* RenderComponent = TargetActor->FindComponentByClass<UEntityRenderComponent>();
+	
+	return RenderComponent;
+}
+
+class ABaseCharacter* UUtilFunctionLibrary::GetMyCharacter()
+{
+	//ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerPawn(SRGAMEINSTANCE(GEngine)->GetWorld(), 0));
+	ABaseCharacter* BaseCharacter = UUtilFunctionLibrary::GetStageGameMode()->BaseCharacter;
+	return BaseCharacter;
 }
 
 class ABaseLevelScriptActor* UUtilFunctionLibrary::GetBaseLevelScriptActor()

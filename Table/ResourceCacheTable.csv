@@ -1,3 +1,6 @@
 ,CacheObject
 Wall,StaticMesh'/Game/Shaders/ETC/BlockingWall/SM/Wall.Wall'
 ArrowHit,ParticleSystem'/Game/FX/Battle/Hit/FX_Hit_Com_Blood.FX_Hit_Com_Blood'
+FX_Building,ParticleSystem'/Game/FX/Battle/Projectile/FX_TurrentBuilding.FX_TurrentBuilding'
+BuildingCurve,CurveFloat'/Game/Blueprints/Curve/BuildingCurve.BuildingCurve'
+BuildingMat,MaterialInstanceConstant'/Game/FX/Battle/FX_3_TagSummonBlue_MI.FX_3_TagSummonBlue_MI'

@@ -5,9 +5,9 @@
 #include "WidgetBlueprintLibrary.h"
 #include "UtilFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-
-
-
+#include "WidgetLayoutLibrary.h"
+#include "BaseCharacter.h"
+#include "Engine/UserInterfaceSettings.h"
 
 void UUC_SkillSelector::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
@@ -21,47 +21,76 @@ void UUC_SkillSelector::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
 		Scrolling();
 	}
-	
-	
+
+
+	if (TouchType == EUserTouchType::ESIMPLETOUCH)
+	{
+		TouchElapsedTime += InDeltaTime;
+		if (TouchElapsedTime > TouchStateTransitionTime)
+		{
+			TouchType = EUserTouchType::ETOUCH2SEC;
+			TouchElapsedTime = 0.f;
+			Enter_Touch2SecMode();
+		}
+	}
 }
 
 void UUC_SkillSelector::OnButtonPressed()
 {
-	bButtonPressed = true;
+	if(TouchType == EUserTouchType::EEND)
+		TouchType = EUserTouchType::ESIMPLETOUCH;
 
-	for (auto& Element : ButtonArray)
-		Element->SetVisibility(ESlateVisibility::Visible);
-
-	if (IsValid(CircleImage))
-		CircleImage->SetVisibility(ESlateVisibility::Visible);
-	
-}
-
-void UUC_SkillSelector::OnButtonHovered()
-{
-	if (bButtonPressed)
-	{
-		UE_LOG(LogClass, Log, TEXT("Dragging"));
-	}
 }
 
 void UUC_SkillSelector::OnButtonReleased()
 {
-	bButtonPressed = false;
-
 	UE_LOG(LogClass, Log, TEXT("Released"));
 
-	for (auto& Element : ButtonArray)
-		Element->SetVisibility(ESlateVisibility::Collapsed);
+	/*this means user selected a icon*/
+	if (TouchType == EUserTouchType::ESIMPLETOUCH)
+	{
+		UUtilFunctionLibrary::GetMyCharacter()->SetState(ECharacterState::EWAITINGFORBUILDINGSPOT);
+	}
+	else if (TouchType == EUserTouchType::ETOUCH2SEC)
+	{
+		if (IsValid(Button_Candidate))
+		{
+			Button_Root->OnPressed.Clear();
+			Button_Root->OnReleased.Clear();
+			Button_Root->SetRenderTranslation(Button_Candidate->RenderTransform.Translation);
 
-	if (IsValid(CircleImage))
-		CircleImage->SetVisibility(ESlateVisibility::Collapsed);
+			int32 Idx = ButtonArray.Find(Button_Candidate);
+			if (Idx != INDEX_NONE)
+			{
+				ButtonArray[Idx] = Button_Root;
+
+				Button_Root = Button_Candidate;
+				Button_Candidate = nullptr;
+				FindCandidateButton();
+				Button_Root->OnPressed.AddDynamic(this, &UUC_SkillSelector::OnButtonPressed);
+				Button_Root->OnReleased.AddDynamic(this, &UUC_SkillSelector::OnButtonReleased);
+				Button_Root->SetRenderTranslation(FVector2D::ZeroVector);
+			}
+		}
+
+		for (auto& Element : ButtonArray)
+			Element->SetVisibility(ESlateVisibility::Collapsed);
+
+		if (IsValid(CircleImage))
+			CircleImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	
+
+	TouchType = EUserTouchType::EEND;
+	float TouchElapsedTime = 0.f;
 
 }
 
+
+
 void UUC_SkillSelector::SetForceY(float inForce)
 {
-	if (!bButtonPressed)
+	if (TouchType != EUserTouchType::ETOUCH2SEC)
 		return;
 
 	ForceY = FMath::Clamp<float>(inForce, -MaxForce, MaxForce);
@@ -94,10 +123,10 @@ void UUC_SkillSelector::Scrolling()
 
 	}
 
-	FindSelectedButton();
+	FindCandidateButton();
 }
 
-void UUC_SkillSelector::FindSelectedButton()
+void UUC_SkillSelector::FindCandidateButton()
 {
 	FVector2D TargetLocation = FVector2D(-Radius, 0.f);
 
@@ -120,9 +149,25 @@ void UUC_SkillSelector::FindSelectedButton()
 		for (size_t i = 0; i < ButtonArray.Num(); ++i)
 		{
 			if (i != FoundIdx)
+			{
 				ButtonArray[i]->SetRenderOpacity(0.3);
+			}
 			else
+			{
 				ButtonArray[i]->SetRenderOpacity(1);
+				Button_Candidate = ButtonArray[i];
+			}
+				
 		}
 	}
+}
+
+void UUC_SkillSelector::Enter_Touch2SecMode()
+{
+	for (auto& Element : ButtonArray)
+		Element->SetVisibility(ESlateVisibility::Visible);
+
+	if (IsValid(CircleImage))
+		CircleImage->SetVisibility(ESlateVisibility::Visible);
+
 }

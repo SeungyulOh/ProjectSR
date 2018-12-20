@@ -23,6 +23,8 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category = "ABaseLevelScriptActor")
 	class ACameraActor* DynamicCamera = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ABaseLevelScriptActor")
+	class AActor* BaseCamera = nullptr;
 
 	FVector StartCameraPostion;
 	

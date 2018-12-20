@@ -28,6 +28,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	class AMonster* SearchClosestMonster();
+	UFUNCTION(BlueprintImplementableEvent)
+	void	TowerActivated();
 
 	class AMonster* GetTargetMonster();
 
@@ -40,6 +42,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
 	float SightRange = 2000.f;
+
+	
+
+	UPROPERTY()
+	class UEntityRenderComponent* EntityRenderComponent;
 
 private:
 	UPROPERTY()

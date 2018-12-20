@@ -33,6 +33,8 @@ void AMonster::BeginPlay()
 
 	if (IsValid(HPBarWidget))
 		HPBarWidget->SetVisibility(false);
+
+	
 	
 }
 

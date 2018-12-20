@@ -5,6 +5,7 @@
 #include "ProjectSR.h"
 #include "Monster.h"
 #include "BinarySearch.h"
+#include "EntityRenderComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 
@@ -22,7 +23,7 @@ ATower::ATower()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	SphereComponent->SetupAttachment(RootComponent);
 
-	
+	EntityRenderComponent = CreateDefaultSubobject<UEntityRenderComponent>(TEXT("EntityRenderComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +38,9 @@ void ATower::BeginPlay()
 		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ATower::Callback_BeginOverlap);
 	}
 	
+
+	
+		
 	
 }
 

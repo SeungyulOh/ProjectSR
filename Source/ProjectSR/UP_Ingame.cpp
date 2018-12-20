@@ -14,6 +14,8 @@
 #include "WidgetLayoutLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "SplineWall.h"
+#include "UP_Ingame.h"
+#include "UC_SkillSelector.h"
 #include "NavigationSystem.h"
 
 
@@ -51,6 +53,7 @@ void UUP_Ingame::OnClick_CameraToggle()
 void UUP_Ingame::OnClick_ButtonReady()
 {
 	/*To Do : Need to cache resource later*/
+	UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SkillSelector->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	UUtilFunctionLibrary::GetStageGameMode()->SetisMonsterSpawned();
 	UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::ENORMAL);
 	/**/

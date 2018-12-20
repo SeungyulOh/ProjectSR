@@ -38,7 +38,8 @@ public:
 	UPROPERTY()
 	class UBuildingManager* BuildingManager = nullptr;
 
-
+	UPROPERTY()
+	class ABaseCharacter* BaseCharacter = nullptr;
 
 private:
 	void DoTasks();

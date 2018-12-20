@@ -56,6 +56,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	virtual void Tick(float DeltaSeconds) override;
 	
 	void CreateJoystick();
 	void RemoveJoystick();
