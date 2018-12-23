@@ -11,6 +11,8 @@
 #include "StageGameMode.h"
 #include "BasePlayerController.h"
 #include "UtilFunctionLibrary.h"
+#include "WidgetLayoutLibrary.h"
+#include "Engine/UserInterfaceSettings.h"
 
 
 // Sets default values
@@ -18,12 +20,6 @@ AMonster::AMonster()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	HPBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBar"));
-	HPBarWidget->SetupAttachment(RootComponent);
-
-
-
 }
 
 // Called when the game starts or when spawned
@@ -31,10 +27,12 @@ void AMonster::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(HPBarWidget))
-		HPBarWidget->SetVisibility(false);
-
-	
+	HPBar = CreateWidget<UUC_HpBar>(SRGAMEINSTANCE(GEngine), WidgetClass);
+	if (IsValid(HPBar) && !HPBar->IsInViewport())
+	{
+		HPBar->AddToViewport();
+		HPBar->SetVisibility(ESlateVisibility::Collapsed);
+	}
 	
 }
 
@@ -43,26 +41,33 @@ void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!HPBarWidget->IsVisible() && HPShowElapsedTime > HPShowLifeTime)
+	if (!HPBar->IsVisible() && HPShowElapsedTime > HPShowLifeTime)
 		return;
 
 	if (HPShowElapsedTime <= HPShowLifeTime)
 	{
 		HPShowElapsedTime += DeltaTime;
-		HPBarWidget->SetVisibility(true);
+		HPBar->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
 		if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
 		{
-			FRotator CamRot = UUtilFunctionLibrary::GetBasePlayerController()->PlayerCameraManager->GetCameraRotation();
-			CamRot.Yaw = 0.f;
-			CamRot.Roll = 0.f;
-			CamRot.Pitch = -CamRot.Pitch;
-			
-			HPBarWidget->SetRelativeRotation(CamRot);
+			/*PositionSetting*/
+			FVector TargetLocation = GetActorLocation();
+			FVector2D ScreenPos = FVector2D::ZeroVector;
+			UUtilFunctionLibrary::GetBasePlayerController()->ProjectWorldLocationToScreen(TargetLocation, ScreenPos);
+
+			float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
+			const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+			viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+			ScreenPos /= viewScale;
+
+			ScreenPos.Y -= 20.f;
+			HPBar->SetRenderTranslation(ScreenPos);
+			/*PositionSetting End*/
 		}
 	}
 	else
-		HPBarWidget->SetVisibility(false);
+		HPBar->SetVisibility(ESlateVisibility::Collapsed);
 
 }
 
@@ -78,7 +83,10 @@ void AMonster::OnTakeDamage(float Damage)
 	CurHP -= Damage;
 	if (CurHP <= 0)
 	{
+		if (IsValid(HPBar))
+			HPBar->RemoveFromViewport();
 		Destroy();
+			
 		return;
 	}
 
@@ -89,11 +97,8 @@ void AMonster::SetHPVisible()
 {
 	HPShowElapsedTime = 0.f;
 
-	UUC_HpBar* HPBar = Cast<UUC_HpBar>(HPBarWidget->GetUserWidgetObject());
 	if (IsValid(HPBar))
-	{
 		HPBar->SetHPPercent(CurHP / MaxHP);
-	}
 }
 
 FVector AMonster::GetDamageSocketLocation()

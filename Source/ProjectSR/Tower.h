@@ -38,7 +38,10 @@ public:
 	class USkeletalMeshComponent* SkeletalMeshComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
-	class USphereComponent* SphereComponent = nullptr;
+	class UCapsuleComponent* Collision = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
+	class USphereComponent* Sight = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
 	float SightRange = 2000.f;

@@ -60,8 +60,13 @@ class PROJECTSR_API UBuildingManager : public UObject
 
 
 public:
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnClickedWhenBuildingMode , FVector)
-	FOnClickedWhenBuildingMode OnClickedWhenBuildingMode;
+
+	void TouchBegin(FVector location);
+	void TouchOver(FVector location);
+	void TouchEnd(FVector location);
+
+	void FirstSpawn();
+	void CancelSpawn();
 
 public:
 	UPROPERTY()
@@ -73,5 +78,7 @@ public:
 	TWeakObjectPtr<class ASplineWall>	SelectedWalllately;
 
 	TArray<FVector> WallPoints;
+
+	FVector SelectedPointonNavMesh = FVector::ZeroVector;
 
 };

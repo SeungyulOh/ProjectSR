@@ -233,7 +233,9 @@ void UInputHelper::CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector
 		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
 		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
 
-		UUtilFunctionLibrary::GetBuildingManager()->OnClickedWhenBuildingMode.Broadcast(Location / viewScale);
+		FVector ResultLocation = Location / viewScale;
+		UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ResultLocation.X, ResultLocation.Y));
+		UUtilFunctionLibrary::GetBuildingManager()->TouchBegin(ResultLocation);
 	}
 	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
 	{
@@ -277,6 +279,17 @@ void UInputHelper::CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector 
 		DirectionVector = FVector2D(Location.X, Location.Y) - CurrentPos;
 		UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(DirectionVector);
 		CurrentPos = FVector2D(Location.X, Location.Y);
+	}
+	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() >= EUserModeEnum::EBUILDING_IDLE &&
+		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() <= EUserModeEnum::EBUILDING_END)
+	{
+		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
+		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+
+		FVector ResultLocation = Location / viewScale;
+		UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ResultLocation.X, ResultLocation.Y));
+		UUtilFunctionLibrary::GetBuildingManager()->TouchOver(ResultLocation);
 	}
 	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
 	{

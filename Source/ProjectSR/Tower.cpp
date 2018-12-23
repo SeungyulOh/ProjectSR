@@ -20,8 +20,11 @@ ATower::ATower()
 	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalComp"));
 	SkeletalMeshComponent->SetupAttachment(RootComponent);
 
-	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
-	SphereComponent->SetupAttachment(RootComponent);
+	Sight = CreateDefaultSubobject<USphereComponent>(TEXT("Sight"));
+	Sight->SetupAttachment(RootComponent);
+
+	Collision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
+	Collision->SetupAttachment(RootComponent);
 
 	EntityRenderComponent = CreateDefaultSubobject<UEntityRenderComponent>(TEXT("EntityRenderComponent"));
 }
@@ -31,15 +34,12 @@ void ATower::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(SphereComponent))
+	if (IsValid(Sight))
 	{
-		SphereComponent->SetSphereRadius(SightRange / 2.f);
-		SphereComponent->OnComponentBeginOverlap.Clear();
-		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ATower::Callback_BeginOverlap);
+		Sight->SetSphereRadius(SightRange / 2.f);
+		Sight->OnComponentBeginOverlap.Clear();
+		Sight->OnComponentBeginOverlap.AddDynamic(this, &ATower::Callback_BeginOverlap);
 	}
-	
-
-	
 		
 	
 }

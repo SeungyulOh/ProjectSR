@@ -32,10 +32,12 @@ public:
 
 	FVector GetDamageSocketLocation();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
-	class UWidgetComponent* HPBarWidget = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ATowerSpawner")
+	TSubclassOf<class UUC_HpBar> WidgetClass;
+	UPROPERTY()
+	class UUC_HpBar* HPBar;
 
-	float HPShowElapsedTime = 0.f;
+	float HPShowElapsedTime = 1.f;
 	float HPShowLifeTime = 1.f;
 
 	float MaxHP = 100;

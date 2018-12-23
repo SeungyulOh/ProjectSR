@@ -41,7 +41,7 @@ struct PROJECTSR_API FVariables
 	class UUC_SkillSelector*	SkillSelector;
 
 
-	FVector SelectedPointonNavMesh = FVector::ZeroVector;
+	
 
 };
 
@@ -85,8 +85,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnClick_ButtonPrev();
 
-	UFUNCTION()
-	void Callback_ClickedWhenBuildingMode(FVector ViewportLocation);
 
 public:
 

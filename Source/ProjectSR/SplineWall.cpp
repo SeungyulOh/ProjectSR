@@ -71,6 +71,7 @@ void ASplineWall::Refresh(TArray<FVector> InPoints)
 			{
 				meshComponent->OnComponentCreated();
 				meshComponent->SetForwardAxis(ESplineMeshAxis::X);
+				//meshComponent->SetMobility(EComponentMobility::Movable);
 
 				if (CachedWallMesh.IsValid())
 					meshComponent->SetStaticMesh(CachedWallMesh.Get());
@@ -84,7 +85,7 @@ void ASplineWall::Refresh(TArray<FVector> InPoints)
 				meshComponent->SetStartAndEnd(StartPos, StartTangent, EndPos, EndTangent);
 				meshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-				meshComponent->AttachToComponent(SplineComponent, FAttachmentTransformRules::KeepRelativeTransform);
+				//meshComponent->AttachToComponent(SplineComponent, FAttachmentTransformRules::KeepRelativeTransform);
 				meshComponent->RegisterComponent();
 				SplineMeshArray.Emplace(meshComponent);
 			}

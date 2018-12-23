@@ -25,12 +25,6 @@ void UUP_Ingame::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	UBuildingManager* BuildingManager = UUtilFunctionLibrary::GetBuildingManager();
-	if (IsValid(BuildingManager))
-	{
-		BuildingManager->OnClickedWhenBuildingMode.Clear();
-		BuildingManager->OnClickedWhenBuildingMode.AddUObject(this, &UUP_Ingame::Callback_ClickedWhenBuildingMode);
-	}
 
 	Renderer.variables = &Variables;
 	Renderer.Prepare();
@@ -69,20 +63,14 @@ void UUP_Ingame::OnClick_ButtonBuilding()
 
 void UUP_Ingame::OnClick_ButtonFirstSpawn()
 {
-	DrawDebugBox(UUtilFunctionLibrary::GetMyWorld(), Variables.SelectedPointonNavMesh, FVector(10.f, 10.f, 10.f), FColor::Cyan, false, 10.f, 0.f, 10.f);
-	UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Emplace(Variables.SelectedPointonNavMesh);
-	UUtilFunctionLibrary::GetBuildingManager()->SpawnedWalllately = UUtilFunctionLibrary::GetMyWorld()->SpawnActor<ASplineWall>(Variables.SelectedPointonNavMesh, FRotator::ZeroRotator);
-	UUtilFunctionLibrary::GetBuildingManager()->WallArray.Emplace(UUtilFunctionLibrary::GetBuildingManager()->SpawnedWalllately.Get());
+	UUtilFunctionLibrary::GetBuildingManager()->FirstSpawn();
+	
 
 	UUtilFunctionLibrary::PlayWidgetAnimation(this, TEXT("UIAppear"), false, EUMGSequencePlayMode::Reverse);
 }
 
 void UUP_Ingame::OnClick_ButtonConfirm()
 {
-	/*DrawDebugBox(UUtilFunctionLibrary::GetMyWorld(), Variables.SelectedPointonNavMesh, FVector(10.f, 10.f, 10.f), FColor::Cyan, false, 10.f, 0.f, 10.f);
-	UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Emplace(Variables.SelectedPointonNavMesh);
-	UUtilFunctionLibrary::GetBuildingManager()->SpawnedWalllately->Refresh(UUtilFunctionLibrary::GetBuildingManager()->WallPoints);
-	UUtilFunctionLibrary::PlayWidgetAnimation(this, TEXT("UIAppear"), false, EUMGSequencePlayMode::Reverse);*/
 	
 }
 
@@ -111,73 +99,7 @@ void UUP_Ingame::OnClick_ButtonComplete()
 
 void UUP_Ingame::OnClick_ButtonPrev()
 {
-	if (UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Num())
-	{
-		UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Pop();
-		UUtilFunctionLibrary::GetBuildingManager()->SpawnedWalllately->Refresh(UUtilFunctionLibrary::GetBuildingManager()->WallPoints);
-		UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
-
-		int32 MaxNum = UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Num();
-		if (UUtilFunctionLibrary::GetBuildingManager()->WallPoints.IsValidIndex(MaxNum - 1))
-		{
-			Variables.SelectedPointonNavMesh = UUtilFunctionLibrary::GetBuildingManager()->WallPoints[MaxNum - 1];
-		}
-	}
-}
-
-/*Decide Building mode here*/
-void UUP_Ingame::Callback_ClickedWhenBuildingMode(FVector ViewportLocation)
-{
-	//check if splinewall is selected by user.
-	FVector viewportLoc = ViewportLocation;
-	float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
-	const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
-	viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
-	viewportLoc *= viewScale;
-
-	FVector WorldLocation = FVector::ZeroVector;
-	FVector WorldDirection = FVector::ZeroVector;
-	bool bSuccess = UUtilFunctionLibrary::GetBasePlayerController()->DeprojectScreenPositionToWorld(viewportLoc.X, viewportLoc.Y, WorldLocation, WorldDirection);
-	if (bSuccess)
-	{
-		TArray<FHitResult> outResult;
-		UUtilFunctionLibrary::GetMyWorld()->LineTraceMultiByChannel(outResult, WorldLocation, WorldLocation + WorldDirection * 99999.f, ECollisionChannel::ECC_WorldDynamic);
-		for (size_t i = 0; i < outResult.Num(); ++i)
-		{
-			ASplineWall* SplineWall = Cast<ASplineWall>(outResult[i].GetActor());
-			if (SplineWall)
-			{
-				Variables.SelectedPointonNavMesh = outResult[i].ImpactPoint;
-				Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ViewportLocation.X, ViewportLocation.Y));
-				UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_WALLSELECTING);
-				UUtilFunctionLibrary::GetBuildingManager()->SelectedWalllately = SplineWall;
-				return;
-			}
-		}
-	}
-	//check end.
-	
-	if (UUtilFunctionLibrary::DeprojectViewportPointToNavMesh(FVector2D(ViewportLocation.X, ViewportLocation.Y), Variables.SelectedPointonNavMesh))
-	{
-		Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ViewportLocation.X, ViewportLocation.Y));
-		UBuildingManager* buildingManager = UUtilFunctionLibrary::GetBuildingManager();
-		if (IsValid(buildingManager))
-		{
-			if(!buildingManager->WallPoints.Num())
-				UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDSTART);
-			else 
-			{
-				DrawDebugBox(UUtilFunctionLibrary::GetMyWorld(), Variables.SelectedPointonNavMesh, FVector(10.f, 10.f, 10.f), FColor::Cyan, false, 10.f, 0.f, 10.f);
-				UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Emplace(Variables.SelectedPointonNavMesh);
-				UUtilFunctionLibrary::GetBuildingManager()->SpawnedWalllately->Refresh(UUtilFunctionLibrary::GetBuildingManager()->WallPoints);
-				UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
-			}
-		}
-	}
-	else
-	{
-		//UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_IDLE);
-	}
+	UUtilFunctionLibrary::GetBuildingManager()->CancelSpawn();
 }
 
 void FRenderer::Prepare()
@@ -337,7 +259,8 @@ void FRenderer::Reposition_SubUI()
 			return;
 
 		FVector2D ScreenPos = FVector2D::ZeroVector;
-		if (UUtilFunctionLibrary::GetBasePlayerController()->ProjectWorldLocationToScreen(variables->SelectedPointonNavMesh , ScreenPos))
+		FVector SelectedPointOnNav = UUtilFunctionLibrary::GetBuildingManager()->SelectedPointonNavMesh;
+		if (UUtilFunctionLibrary::GetBasePlayerController()->ProjectWorldLocationToScreen(SelectedPointOnNav, ScreenPos))
 		{
 			float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
 			const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());

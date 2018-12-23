@@ -3,6 +3,7 @@
 #include "Nexus.h"
 #include "Engine.h"
 #include "Monster.h"
+#include "UC_HpBar.h"
 
 // Sets default values
 ANexus::ANexus()
@@ -41,7 +42,13 @@ void ANexus::Callback_BeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	if (IsValid(OtherActor))
 	{
 		if (OtherActor->GetClass()->IsChildOf<AMonster>())
+		{
+			AMonster* Monster = Cast<AMonster>(OtherActor);
+			if (IsValid(Monster))
+				Monster->HPBar->RemoveFromViewport();
 			OtherActor->Destroy();
+		}
+			
 	}
 }
 
