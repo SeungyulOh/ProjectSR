@@ -14,6 +14,7 @@
 #include "Engine/UserInterfaceSettings.h"
 #include "WidgetLayoutLibrary.h"
 #include "BaseLevelScriptActor.h"
+#include "GameFramework/PlayerStart.h"
 #include "SplineWall.h"
 
 AStageGameMode::AStageGameMode()
@@ -26,6 +27,12 @@ AStageGameMode::AStageGameMode()
 void AStageGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
+	if (OutActors.IsValidIndex(0))
+		PlayerStartActor = Cast<APlayerStart>(OutActors[0]);
+
 
 	UTableManager* TableManager = SRGAMEINSTANCE(this)->TableManager;
 	if (TableManager)
@@ -90,6 +97,13 @@ void AStageGameMode::BeginPlay()
 	}
 
 	
+}
+
+void AStageGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	SpawnerArray.Empty();
 }
 
 void AStageGameMode::SetUserMode(EUserModeEnum InMode)
@@ -161,7 +175,6 @@ void AStageGameMode::DoTasks()
 
 void UBuildingManager::TouchBegin(FVector location)
 {
-	//check if splinewall is selected by user.
 	FVector viewportLoc = location;
 	float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
 	const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
@@ -187,27 +200,33 @@ void UBuildingManager::TouchBegin(FVector location)
 			}
 		}
 	}
-	//check end.
 
+	//check if splinewall is selected by user.
 	if (UUtilFunctionLibrary::DeprojectViewportPointToNavMesh(FVector2D(location.X, location.Y), SelectedPointonNavMesh))
 	{
 		if (!WallPoints.Num())
 			UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDSTART);
 		else
 		{
+			UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDSTART);
+
 			WallPoints.Emplace(SelectedPointonNavMesh);
 			SpawnedWalllately->Refresh(WallPoints);
-			//UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
+
+			//need to be fixed.. temp added
+			UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SubUIOverlay->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 	else
 	{
-		//UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_IDLE);
 	}
 }
 
 void UBuildingManager::TouchOver(FVector location)
 {
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_WALLSELECTING)
+		return;
+
 	if (UUtilFunctionLibrary::DeprojectViewportPointToNavMesh(FVector2D(location.X, location.Y), SelectedPointonNavMesh))
 	{
 		if (!WallPoints.Num())
@@ -218,13 +237,20 @@ void UBuildingManager::TouchOver(FVector location)
 		{
 			WallPoints[MaxIdx] = SelectedPointonNavMesh;
 			SpawnedWalllately->Refresh(WallPoints);
-			//UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
 		}
 	}
 }
 
 void UBuildingManager::TouchEnd(FVector location)
 {
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::EBUILDING_WALLSELECTING)
+		return;
+
+	bool bPartialPath = UUtilFunctionLibrary::isPartialPath();
+	if (bPartialPath)
+		CancelSpawn();
+	else if (WallPoints.Num())
+		UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
 }
 
 void UBuildingManager::FirstSpawn()

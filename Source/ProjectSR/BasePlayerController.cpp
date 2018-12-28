@@ -229,6 +229,13 @@ void UInputHelper::CallbackInputTouchBegin(ETouchIndex::Type TouchIndex, FVector
 	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() >= EUserModeEnum::EBUILDING_IDLE &&
 		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() <= EUserModeEnum::EBUILDING_END)
 	{
+		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+		{
+			CurrentTouchType = TouchIndex;
+			StartPos = FVector2D(Location.X, Location.Y);
+			CurrentPos = StartPos;
+		}
+
 		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
 		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
 		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
@@ -283,6 +290,9 @@ void UInputHelper::CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector 
 	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() >= EUserModeEnum::EBUILDING_IDLE &&
 		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() <= EUserModeEnum::EBUILDING_END)
 	{
+		if (CurrentTouchType == ETouchIndex::MAX_TOUCHES)
+			return;
+
 		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
 		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
 		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
@@ -336,6 +346,22 @@ void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector L
 		{
 			UUtilFunctionLibrary::GetMyCharacter()->TowerBuildingHelper.OnTouchEnd(Location);
 		}
+	}
+	else if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() >= EUserModeEnum::EBUILDING_IDLE &&
+		UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() <= EUserModeEnum::EBUILDING_END)
+	{
+		if (CurrentTouchType != ETouchIndex::MAX_TOUCHES)
+			CurrentTouchType = ETouchIndex::MAX_TOUCHES;
+		else
+			return;
+
+		float viewScale = UWidgetLayoutLibrary::GetViewportScale(SRGAMEINSTANCE(GEngine)->GetWorld());
+		const FVector2D viewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+
+		FVector ResultLocation = Location / viewScale;
+		UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ResultLocation.X, ResultLocation.Y));
+		UUtilFunctionLibrary::GetBuildingManager()->TouchEnd(ResultLocation);
 	}
 	
 	

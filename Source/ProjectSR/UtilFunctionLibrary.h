@@ -29,6 +29,8 @@ public:
 	static void PlayWidgetAnimation(UUserWidget* widget, FString AnimnName , bool bLoop , EUMGSequencePlayMode::Type type);
 	static bool DeprojectViewportPointToNavMesh(FVector2D viewportLoc, FVector& outLoc);
 
+	static bool isPartialPath();
+
 	UFUNCTION(BlueprintCallable)
 	static class ABaseCharacter*			GetMyCharacter();
 	

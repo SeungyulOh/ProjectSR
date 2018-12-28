@@ -19,6 +19,7 @@ public:
 	AStageGameMode();
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 public:
 	void SetUserMode(EUserModeEnum InMode);
@@ -40,6 +41,12 @@ public:
 
 	UPROPERTY()
 	class ABaseCharacter* BaseCharacter = nullptr;
+
+	UPROPERTY()
+	TArray<TWeakObjectPtr<class AMonsterSpawner>> SpawnerArray;
+
+	UPROPERTY()
+	TWeakObjectPtr<class APlayerStart>	PlayerStartActor;
 
 private:
 	void DoTasks();

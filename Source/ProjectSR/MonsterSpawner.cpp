@@ -8,6 +8,7 @@
 #include "NavigationSystem/Public/NavigationPath.h"
 #include "UtilFunctionLibrary.h"
 #include "StageGameMode.h"
+
 #include "BaseLevelScriptActor.h"
 
 
@@ -28,6 +29,10 @@ AMonsterSpawner::AMonsterSpawner()
 void AMonsterSpawner::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UUtilFunctionLibrary::GetStageGameMode()->SpawnerArray.Emplace(this);
+
+	
 
 	FTableInfos* TableInfos = SRGAMEINSTANCE(this)->TableManager->GetTableInfo<FTableInfos>(SRGAMEINSTANCE(this)->TableManager->DTObjectTable, TEXT("Orc"));
 	if (TableInfos && TableInfos->BlueprintClass.IsValid())
@@ -88,16 +93,24 @@ void AMonsterSpawner::Callback_DrawPath()
 	if (UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
 		return;
 
+	AStageGameMode* StageGameMode = UUtilFunctionLibrary::GetStageGameMode();
+	if (!IsValid(StageGameMode))
+		return;
 
-	TArray<AActor*> OutActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
-	FVector TargetLocation = OutActors[0]->GetActorLocation();
+	FVector TargetLocation = StageGameMode->PlayerStartActor->GetActorLocation();
 	UNavigationSystemV1* NavSystem = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
 	if (NavSystem)
 	{
 		UNavigationPath* path = NavSystem->FindPathToLocationSynchronously(GetWorld(), GetActorLocation(), TargetLocation);
 		if (path)
 		{
+			FColor color = FColor::White;
+			if (path->IsPartial())
+				color = FColor::Red;
+			else
+				color = FColor::Cyan;
+
+
 			path->EnableDebugDrawing(true);
 			TArray<FNavPathPoint> pathPoints = path->GetPath()->GetPathPoints();
 
@@ -110,8 +123,9 @@ void AMonsterSpawner::Callback_DrawPath()
 				FVector EndPoint = pathPoints[i + 1].Location;
 				StartPoint.Z += 50.f;
 				EndPoint.Z += 50.f;
-				DrawDebugDirectionalArrow(GetWorld(), StartPoint, EndPoint, 1.f, FColor::Cyan, false, 1.5f, 0.f, 10.f);
+				DrawDebugDirectionalArrow(GetWorld(), StartPoint, EndPoint, 1.f, color, false, 1.5f, 0.f, 10.f);
 			}
+
 		}
 	}
 }

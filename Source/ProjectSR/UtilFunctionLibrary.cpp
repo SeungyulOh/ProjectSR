@@ -12,6 +12,8 @@
 #include "NavigationSystem.h"
 #include "BaseCharacter.h"
 #include "EntityRenderComponent.h"
+#include "MonsterSpawner.h"
+#include "NavigationPath.h"
 
 
 
@@ -136,6 +138,38 @@ bool UUtilFunctionLibrary::DeprojectViewportPointToNavMesh(FVector2D viewportLoc
 						outLoc = outdata.Location;
 						return true;
 					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+bool UUtilFunctionLibrary::isPartialPath()
+{
+	AStageGameMode* StageGameMode = UUtilFunctionLibrary::GetStageGameMode();
+	if (!IsValid(StageGameMode))
+		return true;
+	
+	if (!StageGameMode->PlayerStartActor.IsValid())
+		return true;
+			
+	FVector TargetPoint = StageGameMode->PlayerStartActor->GetActorLocation();
+	for (size_t i = 0; i < StageGameMode->SpawnerArray.Num(); ++i)
+	{
+		if (StageGameMode->SpawnerArray[i].IsValid())
+		{
+			FVector StartingPoint = StageGameMode->SpawnerArray[i]->GetActorLocation();
+
+			UNavigationSystemV1* NavSystem = Cast<UNavigationSystemV1>(StageGameMode->GetWorld()->GetNavigationSystem());
+			if (NavSystem)
+			{
+				UNavigationPath* path = NavSystem->FindPathToLocationSynchronously(StageGameMode->GetWorld(), StartingPoint, TargetPoint);
+				if (path)
+				{
+					if (path->IsPartial())
+						return true;
 				}
 			}
 		}

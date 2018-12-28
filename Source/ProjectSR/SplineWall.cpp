@@ -76,6 +76,8 @@ void ASplineWall::Refresh(TArray<FVector> InPoints)
 				if (CachedWallMesh.IsValid())
 					meshComponent->SetStaticMesh(CachedWallMesh.Get());
 
+				
+
 				FVector StartPos = SplineComponent->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
 				FVector StartTangent = SplineComponent->GetTangentAtSplinePoint(i, ESplineCoordinateSpace::World);
 
