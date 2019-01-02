@@ -70,6 +70,11 @@ class ABaseCharacter* UUtilFunctionLibrary::GetMyCharacter()
 	return BaseCharacter;
 }
 
+void UUtilFunctionLibrary::StageFail()
+{
+	UUtilFunctionLibrary::GetStageGameMode()->SetGameStateMode(EGameStateEnum::STAGEFAILED);
+}
+
 class ABaseLevelScriptActor* UUtilFunctionLibrary::GetBaseLevelScriptActor()
 {
 	UWorld* world = SRGAMEINSTANCE(GEngine)->GetWorld();
@@ -107,6 +112,27 @@ void UUtilFunctionLibrary::PlayWidgetAnimation(UUserWidget* widget, FString Anim
 		if (IsValid(*FoundAnim))
 			widget->PlayAnimation(*FoundAnim , 0.f, !bLoop , type);
 	}
+}
+
+class UWidgetAnimation* UUtilFunctionLibrary::GetWidgetAnimation(UUserWidget* widget, FString AnimnName)
+{
+	UWidgetBlueprintGeneratedClass* WidgetBlueprintClass = Cast<UWidgetBlueprintGeneratedClass>(widget->GetClass());
+	if (WidgetBlueprintClass)
+	{
+		UWidgetAnimation** FoundAnim = WidgetBlueprintClass->Animations.FindByPredicate([AnimnName](UWidgetAnimation* anim) {
+			if (IsValid(anim))
+			{
+				if (anim->GetName().Contains(AnimnName))
+					return true;
+			}
+			return false;
+		});
+
+		if (IsValid(*FoundAnim))
+			return *FoundAnim;
+	}
+
+	return nullptr;
 }
 
 bool UUtilFunctionLibrary::DeprojectViewportPointToNavMesh(FVector2D viewportLoc, FVector& outLoc)
@@ -176,4 +202,9 @@ bool UUtilFunctionLibrary::isPartialPath()
 	}
 
 	return false;
+}
+
+int32 UUtilFunctionLibrary::GetRequiredGold(float WallLength)
+{
+	return WallLength * 0.1f;
 }

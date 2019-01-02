@@ -4,6 +4,8 @@
 #include "Engine.h"
 #include "Monster.h"
 #include "UC_HpBar.h"
+#include "UtilFunctionLibrary.h"
+#include "StageGameMode.h"
 
 // Sets default values
 ANexus::ANexus()
@@ -46,9 +48,11 @@ void ANexus::Callback_BeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			AMonster* Monster = Cast<AMonster>(OtherActor);
 			if (IsValid(Monster))
 				Monster->HPBar->RemoveFromViewport();
-			OtherActor->Destroy();
+
+			Monster->Destroy();
+
+			UUtilFunctionLibrary::GetStageGameMode()->SetGameStateMode(EGameStateEnum::STAGEFAILED);
 		}
-			
 	}
 }
 

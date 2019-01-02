@@ -4,6 +4,7 @@
 
 #define WIDGET_LOADING FName(TEXT("UP_LoadingScene"))
 #define WIDGET_INGAME  FName(TEXT("UP_Ingame"))
+#define WIDGET_MESSAGE FName(TEXT("UP_MessageNotifier"))
 
 
 UENUM(BlueprintType)

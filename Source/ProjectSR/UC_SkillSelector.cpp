@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "WidgetLayoutLibrary.h"
 #include "BaseCharacter.h"
+#include "StageGameMode.h"
 #include "Engine/UserInterfaceSettings.h"
 
 void UUC_SkillSelector::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -49,7 +50,10 @@ void UUC_SkillSelector::OnButtonReleased()
 	/*this means user selected a icon*/
 	if (TouchType == EUserTouchType::ESIMPLETOUCH)
 	{
-		UUtilFunctionLibrary::GetMyCharacter()->SetState(ECharacterState::EWAITINGFORBUILDINGSPOT);
+		int32 ReqGold = 300;
+		int32 CurrentGold = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGold();
+		if(ReqGold <= CurrentGold)
+			UUtilFunctionLibrary::GetMyCharacter()->SetState(ECharacterState::EWAITINGFORBUILDINGSPOT);
 	}
 	else if (TouchType == EUserTouchType::ETOUCH2SEC)
 	{

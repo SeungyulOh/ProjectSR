@@ -5,6 +5,8 @@
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 #include "TableManager.h"
+#include "StageGameMode.h"
+#include "UtilFunctionLibrary.h"
 
 
 // Sets default values
@@ -55,6 +57,7 @@ void ASplineWall::Refresh(TArray<FVector> InPoints)
 		}
 		SplineMeshArray.Empty();
 		SplineComponent->ClearSplinePoints();
+		TotalWallLength = 0.f;
 
 		for (size_t i = 0; i < InPoints.Num(); ++i)
 		{
@@ -87,11 +90,21 @@ void ASplineWall::Refresh(TArray<FVector> InPoints)
 				meshComponent->SetStartAndEnd(StartPos, StartTangent, EndPos, EndTangent);
 				meshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
+				FVector Direction = StartPos - EndPos;
+				TotalWallLength += Direction.Size2D();
+
 				//meshComponent->AttachToComponent(SplineComponent, FAttachmentTransformRules::KeepRelativeTransform);
 				meshComponent->RegisterComponent();
 				SplineMeshArray.Emplace(meshComponent);
 			}
 		}
+
+		UUtilFunctionLibrary::GetStageGameMode()->BuildingManager->OnWallsRefreshed(this);
 	}
+}
+
+void ASplineWall::WallActivated(bool InActivated)
+{
+	bActivated = InActivated;
 }
 

@@ -32,7 +32,8 @@ void AMonsterSpawner::BeginPlay()
 
 	UUtilFunctionLibrary::GetStageGameMode()->SpawnerArray.Emplace(this);
 
-	
+	int32 ExpectedTotalMonsterCount = SpawnMonsterAtOnce * TotalSpawnCount;
+	UUtilFunctionLibrary::GetStageGameMode()->AddMonsterCount(ExpectedTotalMonsterCount);
 
 	FTableInfos* TableInfos = SRGAMEINSTANCE(this)->TableManager->GetTableInfo<FTableInfos>(SRGAMEINSTANCE(this)->TableManager->DTObjectTable, TEXT("Orc"));
 	if (TableInfos && TableInfos->BlueprintClass.IsValid())
@@ -56,7 +57,7 @@ void AMonsterSpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGameStateMode() < EGameStateEnum::MONSTERSPAWNED)
 		return;
 
 	if (IsPendingKill())
@@ -90,7 +91,7 @@ void AMonsterSpawner::Tick(float DeltaTime)
 
 void AMonsterSpawner::Callback_DrawPath()
 {
-	if (UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
+	if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGameStateMode() >= EGameStateEnum::MONSTERSPAWNED)
 		return;
 
 	AStageGameMode* StageGameMode = UUtilFunctionLibrary::GetStageGameMode();

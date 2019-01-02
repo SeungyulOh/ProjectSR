@@ -38,7 +38,7 @@ public:
 	class UProjectileMovementComponent* ProjectileMovementComponent;
 
 private:
-	float Damage = 50.f;
+	float Damage = 12.f;
 
 	/*life*/
 	float ElapsedTime = 0.f;

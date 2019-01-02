@@ -15,6 +15,7 @@
 #include "WidgetLayoutLibrary.h"
 #include "BaseLevelScriptActor.h"
 #include "GameFramework/PlayerStart.h"
+#include "UC_Topbar.h"
 #include "SplineWall.h"
 
 AStageGameMode::AStageGameMode()
@@ -73,6 +74,32 @@ void AStageGameMode::BeginPlay()
 	USRGameInstance* GameInst = SRGAMEINSTANCE(this);
 	if (GameInst)
 	{
+		FWidgetTableInfos* TableInfo = GameInst->TableManager->GetTableInfo<FWidgetTableInfos>(GameInst->TableManager->DTWidgetTable, WIDGET_MESSAGE);
+		if (TableInfo)
+		{
+			UClass* WidgetClass = nullptr;
+			if (TableInfo->WidgetClass.IsValid())
+			{
+				WidgetClass = TableInfo->WidgetClass.Get();
+			}
+			else
+			{
+#ifdef WITH_EDITOR
+				WidgetClass = TableInfo->WidgetClass.LoadSynchronous();
+#endif
+			}
+
+			MessageNotifierWidget = CreateWidget<UUserWidget>(SRGAMEINSTANCE(GEngine), WidgetClass, WIDGET_MESSAGE);
+			if (IsValid(MessageNotifierWidget) && !MessageNotifierWidget->IsInViewport())
+			{
+				MessageNotifierWidget->AddToViewport();
+				MessageNotifierWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+		}
+	}
+
+	if (GameInst)
+	{
 		FWidgetTableInfos* TableInfo = GameInst->TableManager->GetTableInfo<FWidgetTableInfos>(GameInst->TableManager->DTWidgetTable, WIDGET_INGAME);
 		if (TableInfo)
 		{
@@ -95,7 +122,6 @@ void AStageGameMode::BeginPlay()
 			}
 		}
 	}
-
 	
 }
 
@@ -104,6 +130,28 @@ void AStageGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	SpawnerArray.Empty();
+}
+
+void AStageGameMode::Callback_MessageAnimationEnd()
+{
+	switch (GameStateMode)
+	{
+	case EGameStateEnum::IDLE:
+		break;
+
+	case EGameStateEnum::MONSTERSPAWNED:
+	{
+		if (IsValid(IngameWidget))
+			IngameWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}break;
+
+	case EGameStateEnum::STAGEFAILED:
+	{
+		UGameplayStatics::OpenLevel(SRGAMEINSTANCE(GEngine), TEXT("StartupMap"));
+	}break;
+	}
+
+	
 }
 
 void AStageGameMode::SetUserMode(EUserModeEnum InMode)
@@ -116,6 +164,71 @@ void AStageGameMode::SetUserMode(EUserModeEnum InMode)
 
 	if (IsValid(IngameWidget))
 		IngameWidget->Renderer.Render();
+}
+
+void AStageGameMode::SetGameStateMode(EGameStateEnum InMode)
+{
+	if (GameStateMode != InMode)
+	{
+		GameStateMode = InMode;
+
+		switch (GameStateMode)
+		{
+		case EGameStateEnum::IDLE:
+			break;
+
+		case EGameStateEnum::MONSTERSPAWNED:
+		{
+			MessageNotifierWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			UUtilFunctionLibrary::PlayWidgetAnimation(MessageNotifierWidget, TEXT("Stage_Start"), false, EUMGSequencePlayMode::Forward);
+			IngameWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+			UWidgetAnimation* anim = UUtilFunctionLibrary::GetWidgetAnimation(MessageNotifierWidget, TEXT("Stage_Start"));
+			if (anim)
+			{
+				anim->OnAnimationFinished.Clear();
+				anim->OnAnimationFinished.AddDynamic(this, &AStageGameMode::Callback_MessageAnimationEnd);
+			}
+		}break;
+
+		case EGameStateEnum::STAGEFAILED:
+		{
+			MessageNotifierWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			UUtilFunctionLibrary::PlayWidgetAnimation(MessageNotifierWidget, TEXT("Stage_Fail"), false, EUMGSequencePlayMode::Forward);
+			IngameWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+			UWidgetAnimation* anim = UUtilFunctionLibrary::GetWidgetAnimation(MessageNotifierWidget, TEXT("Stage_Fail"));
+			if (anim)
+			{
+				anim->OnAnimationFinished.Clear();
+				anim->OnAnimationFinished.AddDynamic(this, &AStageGameMode::Callback_MessageAnimationEnd);
+			}
+
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.f);
+		}break;
+
+		default:
+			break;
+		}
+	}
+}
+
+void AStageGameMode::AddMonsterCount(int32 Count)
+{
+	MonsterRemains += Count;
+	OnMonsterCountChanged.Broadcast(MonsterRemains);
+}
+
+void AStageGameMode::DecreaseMonsterCount()
+{
+	MonsterRemains--;
+	OnMonsterCountChanged.Broadcast(MonsterRemains);
+}
+
+void AStageGameMode::AddGold(int32 MaxHp)
+{
+	OnGoldChanged.Broadcast(Gold , Gold + MaxHp);
+	Gold += MaxHp;
 }
 
 void AStageGameMode::DoTasks()
@@ -266,10 +379,24 @@ void UBuildingManager::CancelSpawn()
 	{
 		WallPoints.Pop();
 		SpawnedWalllately->Refresh(UUtilFunctionLibrary::GetBuildingManager()->WallPoints);
-		UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
 
 		int32 MaxNum = WallPoints.Num();
+		if (MaxNum <= 1)
+			UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_IDLE);
+		else
+			UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_ADDING);
+
 		if (WallPoints.IsValidIndex(MaxNum - 1))
 			SelectedPointonNavMesh = WallPoints[MaxNum - 1];
 	}
+}
+
+void UBuildingManager::OnWallsRefreshed(class ASplineWall* RefreshedWall)
+{
+	if (!IsValid(RefreshedWall))
+		return;
+
+	float TotalLength = RefreshedWall->GetTotalLength();
+	ReqGold = UUtilFunctionLibrary::GetRequiredGold(TotalLength);
+	OnExpectGoldConsumption.Broadcast(ReqGold);
 }

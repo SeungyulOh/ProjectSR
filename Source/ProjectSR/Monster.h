@@ -40,6 +40,6 @@ public:
 	float HPShowElapsedTime = 1.f;
 	float HPShowLifeTime = 1.f;
 
-	float MaxHP = 100;
-	float CurHP = 100;
+	float MaxHP = 0;
+	float CurHP = 0;
 };

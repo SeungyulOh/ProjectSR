@@ -24,6 +24,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Refresh(TArray<FVector> InPoints);
+	void WallActivated(bool InActivated);
+	
+	FORCEINLINE bool isActivated() { return bActivated == true; }
+	FORCEINLINE float GetTotalLength() { return TotalWallLength; }
 
 public:
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly , Category = "ASplineWall")
@@ -35,4 +39,10 @@ public:
 
 	UPROPERTY()
 	TArray<FVector>	SplinePointVectors;
+
+private:
+	float TotalWallLength = 0.f;
+	
+	/*Activated*/
+	bool bActivated = false;
 };

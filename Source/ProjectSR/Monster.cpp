@@ -28,11 +28,10 @@ void AMonster::BeginPlay()
 	Super::BeginPlay();
 
 	HPBar = CreateWidget<UUC_HpBar>(SRGAMEINSTANCE(GEngine), WidgetClass);
-	if (IsValid(HPBar) && !HPBar->IsInViewport())
-	{
-		HPBar->AddToViewport();
-		HPBar->SetVisibility(ESlateVisibility::Collapsed);
-	}
+
+	int32 CurrentStage = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentStage();
+	MaxHP = FMath::Pow(1.2f, CurrentStage) * 20;
+	CurHP = MaxHP;
 	
 }
 
@@ -47,6 +46,10 @@ void AMonster::Tick(float DeltaTime)
 	if (HPShowElapsedTime <= HPShowLifeTime)
 	{
 		HPShowElapsedTime += DeltaTime;
+		
+		if (IsValid(HPBar) && !HPBar->IsInViewport())
+			HPBar->AddToViewport();
+
 		HPBar->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
 		if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentUserMode() == EUserModeEnum::ENORMAL)
@@ -85,8 +88,11 @@ void AMonster::OnTakeDamage(float Damage)
 	{
 		if (IsValid(HPBar))
 			HPBar->RemoveFromViewport();
+		
 		Destroy();
-			
+		UUtilFunctionLibrary::GetStageGameMode()->DecreaseMonsterCount();
+		UUtilFunctionLibrary::GetStageGameMode()->AddGold(MaxHP);
+		
 		return;
 	}
 

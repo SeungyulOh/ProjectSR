@@ -14,6 +14,7 @@
 #include "AIController.h"
 #include "BasePlayerController.h"
 #include "TowerSpawner.h"
+#include "StageGameMode.h"
 #include "EntityRenderComponent.h"
 
 // Sets default values
@@ -100,6 +101,9 @@ void ABaseCharacter::DoTask()
 			DecalMesh->SetVisibility(false);
 
 		TowerBuildingHelper.HammerHitCount = 0;
+
+		UUtilFunctionLibrary::GetStageGameMode()->AddGold(-300);
+
 	}break;
 	/*case ECharacterState::EBUILDINGCOMPLETED:
 	{

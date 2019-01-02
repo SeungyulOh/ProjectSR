@@ -46,8 +46,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tower")
 	float SightRange = 2000.f;
 
-	
-
 	UPROPERTY()
 	class UEntityRenderComponent* EntityRenderComponent;
 

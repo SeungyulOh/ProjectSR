@@ -27,12 +27,18 @@ public:
 	static class ABaseLevelScriptActor*		 GetBaseLevelScriptActor();
 	static class UBuildingManager*			 GetBuildingManager();
 	static void PlayWidgetAnimation(UUserWidget* widget, FString AnimnName , bool bLoop , EUMGSequencePlayMode::Type type);
+	static class UWidgetAnimation* GetWidgetAnimation(UUserWidget* widget, FString AnimnName);
 	static bool DeprojectViewportPointToNavMesh(FVector2D viewportLoc, FVector& outLoc);
-
 	static bool isPartialPath();
+
+	/**/
+	static int32 GetRequiredGold(float WallLength);
 
 	UFUNCTION(BlueprintCallable)
 	static class ABaseCharacter*			GetMyCharacter();
+
+	UFUNCTION(BlueprintCallable)
+	static void StageFail();
 	
 	
 };

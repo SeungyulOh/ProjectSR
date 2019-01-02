@@ -40,6 +40,9 @@ struct PROJECTSR_API FVariables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
 	class UUC_SkillSelector*	SkillSelector;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FVariables")
+	class UUC_Topbar*	Topbar;
+
 
 	
 

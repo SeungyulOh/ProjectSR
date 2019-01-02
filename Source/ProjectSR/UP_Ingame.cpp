@@ -16,6 +16,7 @@
 #include "SplineWall.h"
 #include "UP_Ingame.h"
 #include "UC_SkillSelector.h"
+#include "UC_Topbar.h"
 #include "NavigationSystem.h"
 
 
@@ -48,7 +49,7 @@ void UUP_Ingame::OnClick_ButtonReady()
 {
 	/*To Do : Need to cache resource later*/
 	UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SkillSelector->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	UUtilFunctionLibrary::GetStageGameMode()->SetisMonsterSpawned();
+	UUtilFunctionLibrary::GetStageGameMode()->SetGameStateMode(EGameStateEnum::MONSTERSPAWNED);
 	UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::ENORMAL);
 	/**/
 }
@@ -81,7 +82,22 @@ void UUP_Ingame::OnClick_ButtonRemove()
 	{
 		if (BuildingManager->SelectedWalllately.IsValid())
 		{
+			float TotalLength = BuildingManager->SelectedWalllately->GetTotalLength();
+			int32 ReqGold = UUtilFunctionLibrary::GetRequiredGold(TotalLength);
 			int32 idx = BuildingManager->WallArray.Find(BuildingManager->SelectedWalllately.Get());
+			if (idx != INDEX_NONE)
+			{
+				if (BuildingManager->SelectedWalllately->isActivated())
+					UUtilFunctionLibrary::GetStageGameMode()->AddGold(ReqGold);
+
+				BuildingManager->WallArray[idx]->Destroy();
+				BuildingManager->WallArray.RemoveAt(idx);
+				UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_IDLE);
+			}
+		}
+		else if (BuildingManager->SpawnedWalllately.IsValid())
+		{
+			int32 idx = BuildingManager->WallArray.Find(BuildingManager->SpawnedWalllately.Get());
 			if (idx != INDEX_NONE)
 			{
 				BuildingManager->WallArray[idx]->Destroy();
@@ -94,7 +110,11 @@ void UUP_Ingame::OnClick_ButtonRemove()
 
 void UUP_Ingame::OnClick_ButtonComplete()
 {
+	UUtilFunctionLibrary::GetStageGameMode()->BuildingManager->SpawnedWalllately->WallActivated(true);
 	UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::EBUILDING_IDLE);
+	int32 ReqGold = UUtilFunctionLibrary::GetStageGameMode()->BuildingManager->ReqGold;
+	UUtilFunctionLibrary::GetStageGameMode()->AddGold(-ReqGold);
+
 }
 
 void UUP_Ingame::OnClick_ButtonPrev()
@@ -125,6 +145,8 @@ void FRenderer::Render()
 
 			if (IsValid(variables->Button_BuildingMode))
 				variables->Button_BuildingMode->SetVisibility(ESlateVisibility::Collapsed);
+
+			
 		}break;
 		case EUserModeEnum::ETOPVIEW:
 		{
@@ -136,7 +158,7 @@ void FRenderer::Render()
 				variables->CamButtonText->SetText(FText::FromString(TEXT("Goto Normalview")));
 			if (IsValid(variables->Button_BuildingMode))
 			{
-				if(!UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
+				if(UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGameStateMode() < EGameStateEnum::MONSTERSPAWNED)
 					variables->Button_BuildingMode->SetVisibility(ESlateVisibility::Visible);
 				else
 					variables->Button_BuildingMode->SetVisibility(ESlateVisibility::Collapsed);
@@ -144,6 +166,8 @@ void FRenderer::Render()
 				if (IsValid(variables->BuildingButtonText))
 					variables->BuildingButtonText->SetText(FText::FromString(TEXT("Building Mode")));
 			}
+
+			
 		}break;
 		case EUserModeEnum::EBUILDING_IDLE:
 		{
@@ -157,8 +181,10 @@ void FRenderer::Render()
 			if (IsValid(variables->BuildingButtonText))
 				variables->BuildingButtonText->SetText(FText::FromString(TEXT("Building Mode End")));
 
-			/*if (variables->SubUIOverlay->RenderTransform.Scale == FVector2D(1.f, 1.f))
-				UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameMode()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Reverse);*/
+			UUC_Topbar* topbar = variables->Topbar;
+			if (IsValid(topbar->Variables.ExpectedGoldBox))
+				topbar->Variables.ExpectedGoldBox->SetVisibility(ESlateVisibility::Collapsed);
+			
 		}break;
 		case EUserModeEnum::EBUILDING_ADDSTART:
 		{
@@ -192,9 +218,24 @@ void FRenderer::Render()
 			if (IsValid(variables->Button_Confirm))
 				variables->Button_Confirm->SetVisibility(ESlateVisibility::Collapsed);
 			if (IsValid(variables->Button_Remove))
-				variables->Button_Remove->SetVisibility(ESlateVisibility::Collapsed);
+			{
+				/*int32 ReqGold = UUtilFunctionLibrary::GetStageGameMode()->BuildingManager->ReqGold;
+				int32 CurrentGold = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGold();
+				if (CurrentGold >= ReqGold)
+					variables->Button_Remove->SetVisibility(ESlateVisibility::Collapsed);
+				else*/
+					variables->Button_Remove->SetVisibility(ESlateVisibility::Visible);
+
+			}
 			if (IsValid(variables->Button_Complete))
-				variables->Button_Complete->SetVisibility(ESlateVisibility::Visible);
+			{
+				int32 ReqGold = UUtilFunctionLibrary::GetStageGameMode()->BuildingManager->ReqGold;
+				int32 CurrentGold = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGold();
+				if(CurrentGold >= ReqGold)
+					variables->Button_Complete->SetVisibility(ESlateVisibility::Visible);
+				else
+					variables->Button_Complete->SetVisibility(ESlateVisibility::Collapsed);
+			}
 			if (IsValid(variables->Button_Prev))
 			{
 				if(UUtilFunctionLibrary::GetBuildingManager()->WallPoints.Num() > 2)
@@ -244,7 +285,7 @@ void FRenderer::Render()
 
 	if (IsValid(variables->Button_GameStartMode))
 	{
-		if (!UUtilFunctionLibrary::GetStageGameMode()->GetisMonsterSpawned())
+		if (UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGameStateMode() < EGameStateEnum::MONSTERSPAWNED)
 			variables->Button_GameStartMode->SetVisibility(ESlateVisibility::Visible);
 		else
 			variables->Button_GameStartMode->SetVisibility(ESlateVisibility::Collapsed);
