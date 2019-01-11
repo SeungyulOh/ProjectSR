@@ -79,7 +79,12 @@ void AMonsterSpawner::Tick(float DeltaTime)
 		for (size_t i = 0; i < SpawnMonsterAtOnce; ++i)
 		{
 			AMonster* Monster =  GetWorld()->SpawnActor<AMonster>(MonsterClass, SpawnTransform);
-			UE_LOG(LogClass, Log, TEXT("SpawnMonster : %s") , *Monster->GetName());
+			if (IsValid(Monster))
+			{
+				UE_LOG(LogClass, Log, TEXT("SpawnMonster : %s"), *Monster->GetName());
+				UUtilFunctionLibrary::GetStageGameMode()->SpawnedMonsterArray.Emplace(Monster);
+			}
+				
 			
 		}
 

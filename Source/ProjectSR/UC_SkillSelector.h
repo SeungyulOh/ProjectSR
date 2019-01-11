@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "SRObserver.h"
 #include "UC_SkillSelector.generated.h"
 
 UENUM(BlueprintType)
@@ -14,14 +15,45 @@ enum class EUserTouchType : uint8
 	EEND,
 };
 
+UENUM(BlueprintType)
+enum class ESkillButtonType : uint8
+{
+	EBUIDLING,
+	EACTIVE,
+	EEND,
+};
+
+
+UCLASS()
+class PROJECTSR_API UUC_SkillButton : public UUserWidget
+{
+	GENERATED_BODY()
+public:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void Callback_GoldChanged(int32 Prev, int32 Current);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillButton")
+	class UButton* SkillButton;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillButton")
+	class UImage* SkillImage;
+
+	int32 CostGoldPercent = 10;
+
+	ESkillButtonType type;
+};
+
 /**
  * 
  */
 UCLASS()
-class PROJECTSR_API UUC_SkillSelector : public UUserWidget
+class PROJECTSR_API UUC_SkillSelector : public UUserWidget , public ISRObserver
 {
 	GENERATED_BODY()
 public:
+	void NativeConstruct() override;
 	void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
 
 
@@ -35,15 +67,18 @@ public:
 	void FindCandidateButton();
 
 	void Enter_Touch2SecMode();
+
+public:
+	virtual void Update();
 	
 public:
 	UPROPERTY(EditAnywhere , BlueprintReadWrite , Category = "UUC_SkillSelector")
-	TArray<class UButton*> ButtonArray;
+	TArray<class UUC_SkillButton*> ButtonArray;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillSelector")
-	class UButton* Button_Root;
+	class UUC_SkillButton* Button_Root;
 	UPROPERTY()
-	class UButton* Button_Candidate;
+	class UUC_SkillButton* Button_Candidate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UUC_SkillSelector")
 	class UImage* SelectedImage = nullptr;
@@ -64,6 +99,9 @@ private:
 	float TouchStateTransitionTime = 1.f;
 
 	FIntRect RootButtonPos;
+
+	UPROPERTY()
+	TWeakObjectPtr<class UObservable_StageData>	ObservableStageData;
 	
 	
 };

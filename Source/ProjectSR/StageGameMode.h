@@ -46,8 +46,8 @@ public:
 	FORCEINLINE EUserModeEnum GetCurrentUserMode() { return UserMode; }
 	FORCEINLINE EGameStateEnum GetCurrentGameStateMode() { return GameStateMode; }
 	FORCEINLINE int32	GetMonsterReaminsCount() { return MonsterRemains; }
-	FORCEINLINE int32	GetCurrentStage() { return CurrentStage; }
 	FORCEINLINE int32	GetCurrentGold() { return Gold; }
+	FORCEINLINE TArray<TWeakObjectPtr<class AMonster>>& GetMonsterArray() { return SpawnedMonsterArray; }
 
 public:
 	
@@ -58,7 +58,7 @@ public:
 	class UUP_Ingame* IngameWidget = nullptr;
 
 	UPROPERTY()
-	class UUserWidget*	MessageNotifierWidget = nullptr;
+	class UUP_MessageNotifier*	MessageNotifierWidget = nullptr;
 
 	UPROPERTY()
 	class UBuildingManager* BuildingManager = nullptr;
@@ -68,6 +68,9 @@ public:
 
 	UPROPERTY()
 	TArray<TWeakObjectPtr<class AMonsterSpawner>> SpawnerArray;
+
+	UPROPERTY()
+	TArray<TWeakObjectPtr<class AMonster>> SpawnedMonsterArray;
 
 	UPROPERTY()
 	TWeakObjectPtr<class APlayerStart>	PlayerStartActor;
@@ -87,10 +90,7 @@ private:
 	UPROPERTY()
 	EGameStateEnum		GameStateMode = EGameStateEnum::IDLE;
 
-	bool				bMonsterSpawned = false;
-
 	//stage info
-	int32				CurrentStage = 1;
 	int32				MonsterRemains = 0;
 	int32				Gold = 1000;
 	

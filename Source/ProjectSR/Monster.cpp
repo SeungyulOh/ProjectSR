@@ -13,6 +13,8 @@
 #include "UtilFunctionLibrary.h"
 #include "WidgetLayoutLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AIController.h"
 
 
 // Sets default values
@@ -29,7 +31,7 @@ void AMonster::BeginPlay()
 
 	HPBar = CreateWidget<UUC_HpBar>(SRGAMEINSTANCE(GEngine), WidgetClass);
 
-	int32 CurrentStage = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentStage();
+	int32 CurrentStage = 1;// UUtilFunctionLibrary::GetStageGameMode()->GetCurrentStage();
 	MaxHP = FMath::Pow(1.2f, CurrentStage) * 20;
 	CurHP = MaxHP;
 	
@@ -40,6 +42,14 @@ void AMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (AbnormalState != EMonsterAbnormalState::IDLE)
+	{
+		AbnormalElapsedTime += DeltaTime;
+		if (AbnormalElapsedTime > AbnormalDuration)
+			SetAbnormalState(EMonsterAbnormalState::IDLE, 0.f);
+	}
+
+	/*HPBar*/
 	if (!HPBar->IsVisible() && HPShowElapsedTime > HPShowLifeTime)
 		return;
 
@@ -71,6 +81,9 @@ void AMonster::Tick(float DeltaTime)
 	}
 	else
 		HPBar->SetVisibility(ESlateVisibility::Collapsed);
+
+
+	
 
 }
 
@@ -105,6 +118,31 @@ void AMonster::SetHPVisible()
 
 	if (IsValid(HPBar))
 		HPBar->SetHPPercent(CurHP / MaxHP);
+}
+
+void AMonster::SetAbnormalState(EMonsterAbnormalState InState, float Duration)
+{
+	if (AbnormalState == InState)
+		return;
+
+	/*UBlackboardComponent* blackboard = FindComponentByClass<UBlackboardComponent>();
+	APawn* pawn = Cast<APawn>(this);
+	if (pawn)
+	{
+		AAIController* AIController = Cast<AAIController>(pawn->GetController());
+		if (AIController)
+		{
+			UBlackboardComponent* blackboard = AIController->GetBlackboardComponent();
+			if (IsValid(blackboard))
+			{
+				blackboard->SetValueAsEnum(TEXT("AbnormalState"), (uint8)InState);
+			}
+		}
+	}*/
+
+	AbnormalState = InState;
+	AbnormalDuration = Duration;
+	AbnormalElapsedTime = 0.f;
 }
 
 FVector AMonster::GetDamageSocketLocation()

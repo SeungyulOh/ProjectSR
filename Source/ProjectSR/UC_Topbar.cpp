@@ -15,7 +15,6 @@ void UUC_Topbar::NativeConstruct()
 	UUtilFunctionLibrary::GetStageGameMode()->OnMonsterCountChanged.Clear();
 	UUtilFunctionLibrary::GetStageGameMode()->OnMonsterCountChanged.AddUObject(this , &UUC_Topbar::Callback_MonsterCountChanged);
 
-	UUtilFunctionLibrary::GetStageGameMode()->OnGoldChanged.Clear();
 	UUtilFunctionLibrary::GetStageGameMode()->OnGoldChanged.AddUObject(this, &UUC_Topbar::Callback_GoldChanged);
 
 	UUtilFunctionLibrary::GetStageGameMode()->BuildingManager->OnExpectGoldConsumption.Clear();

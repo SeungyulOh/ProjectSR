@@ -31,8 +31,11 @@ public:
 	static bool DeprojectViewportPointToNavMesh(FVector2D viewportLoc, FVector& outLoc);
 	static bool isPartialPath();
 
+	static void SearchMonster(TArray<class AMonster*>& monsters, FVector CenterPoint, float Radius);
+
 	/**/
 	static int32 GetRequiredGold(float WallLength);
+	static int32 GetInitialGoldEquivalant(int32 CurrentStage);
 
 	UFUNCTION(BlueprintCallable)
 	static class ABaseCharacter*			GetMyCharacter();

@@ -9,6 +9,50 @@
 #include "BaseCharacter.h"
 #include "StageGameMode.h"
 #include "Engine/UserInterfaceSettings.h"
+#include "TableManager.h"
+#include "TableInfos.h"
+#include "ObservableManager.h"
+#include "Observable_StageData.h"
+
+
+void UUC_SkillSelector::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (IsValid(Button_Root))
+	{
+		Button_Root->SkillButton->OnPressed.Clear();
+		Button_Root->SkillButton->OnPressed.AddDynamic(this, &UUC_SkillSelector::OnButtonPressed);
+
+		Button_Root->SkillButton->OnReleased.Clear();
+		Button_Root->SkillButton->OnReleased.AddDynamic(this, &UUC_SkillSelector::OnButtonReleased);
+
+		/*TempAdded*/
+		FResourceCacheInfos* cacheinfo = SRGAMEINSTANCE(this)->TableManager->GetTableInfo<FResourceCacheInfos>(SRGAMEINSTANCE(this)->TableManager->DTResourceCacheTable, TEXT("Sprite_Buidling"));
+		if (cacheinfo)
+		{
+			if (cacheinfo->CacheObject.IsValid())
+				Button_Root->SkillImage->Brush.SetResourceObject(cacheinfo->CacheObject.Get());
+
+			Button_Root->type = ESkillButtonType::EBUIDLING;
+		}
+
+		cacheinfo = SRGAMEINSTANCE(this)->TableManager->GetTableInfo<FResourceCacheInfos>(SRGAMEINSTANCE(this)->TableManager->DTResourceCacheTable, TEXT("Sprite_Skill1"));
+		if (cacheinfo && ButtonArray.IsValidIndex(0))
+		{
+			if (cacheinfo->CacheObject.IsValid())
+				ButtonArray[0]->SkillImage->Brush.SetResourceObject(cacheinfo->CacheObject.Get());
+
+			ButtonArray[0]->type = ESkillButtonType::EACTIVE;
+		}
+	}
+
+	ObservableStageData = UObservableManager::Get()->GetObservable<UObservable_StageData>();
+	if (ObservableStageData.IsValid())
+	{
+		ObservableStageData->Register(this);
+	}
+}
 
 void UUC_SkillSelector::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
@@ -50,18 +94,32 @@ void UUC_SkillSelector::OnButtonReleased()
 	/*this means user selected a icon*/
 	if (TouchType == EUserTouchType::ESIMPLETOUCH)
 	{
-		int32 ReqGold = 300;
-		int32 CurrentGold = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGold();
-		if(ReqGold <= CurrentGold)
-			UUtilFunctionLibrary::GetMyCharacter()->SetState(ECharacterState::EWAITINGFORBUILDINGSPOT);
+		if (Button_Root->type == ESkillButtonType::EBUIDLING)
+		{
+			int32 ReqGold = 300;
+			int32 CurrentGold = UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGold();
+			if (ReqGold <= CurrentGold)
+				UUtilFunctionLibrary::GetMyCharacter()->SetState(ECharacterState::EWAITINGFORBUILDINGSPOT);
+		}
+		else if (Button_Root->type == ESkillButtonType::EACTIVE)
+		{
+			int32 InitialGold = UUtilFunctionLibrary::GetInitialGoldEquivalant(1/* UUtilFunctionLibrary::GetStageGameMode()->GetCurrentStage()*/);
+			float ReqGold = InitialGold * 0.2f;
+			if (ReqGold <= UUtilFunctionLibrary::GetStageGameMode()->GetCurrentGold())
+			{
+				UUtilFunctionLibrary::GetStageGameMode()->AddGold(-ReqGold);
+				UUtilFunctionLibrary::GetMyCharacter()->SetState(ECharacterState::EPLAYACTIVE1SKILLANIM);
+			}
+		}
 	}
 	else if (TouchType == EUserTouchType::ETOUCH2SEC)
 	{
 		if (IsValid(Button_Candidate))
 		{
-			Button_Root->OnPressed.Clear();
-			Button_Root->OnReleased.Clear();
-			Button_Root->SetRenderTranslation(Button_Candidate->RenderTransform.Translation);
+			Button_Root->SkillButton->OnPressed.Clear();
+			Button_Root->SkillButton->OnReleased.Clear();
+			Button_Root->/*SkillButton->*/SetRenderTranslation(Button_Candidate->RenderTransform.Translation);
+
 
 			int32 Idx = ButtonArray.Find(Button_Candidate);
 			if (Idx != INDEX_NONE)
@@ -71,9 +129,9 @@ void UUC_SkillSelector::OnButtonReleased()
 				Button_Root = Button_Candidate;
 				Button_Candidate = nullptr;
 				FindCandidateButton();
-				Button_Root->OnPressed.AddDynamic(this, &UUC_SkillSelector::OnButtonPressed);
-				Button_Root->OnReleased.AddDynamic(this, &UUC_SkillSelector::OnButtonReleased);
-				Button_Root->SetRenderTranslation(FVector2D::ZeroVector);
+				Button_Root->SkillButton->OnPressed.AddDynamic(this, &UUC_SkillSelector::OnButtonPressed);
+				Button_Root->SkillButton->OnReleased.AddDynamic(this, &UUC_SkillSelector::OnButtonReleased);
+				Button_Root->/*SkillButton->*/SetRenderTranslation(FVector2D::ZeroVector);
 			}
 		}
 
@@ -86,7 +144,7 @@ void UUC_SkillSelector::OnButtonReleased()
 	
 
 	TouchType = EUserTouchType::EEND;
-	float TouchElapsedTime = 0.f;
+	TouchElapsedTime = 0.f;
 
 }
 
@@ -134,16 +192,16 @@ void UUC_SkillSelector::FindCandidateButton()
 {
 	FVector2D TargetLocation = FVector2D(-Radius, 0.f);
 
-	TArray<UButton*> TempButtonArray = ButtonArray;
+	TArray<UUC_SkillButton*> TempButtonArray = ButtonArray;
 
-	Algo::Sort(TempButtonArray, [TargetLocation](UButton* Source, UButton* Dest) {
+	Algo::Sort(TempButtonArray, [TargetLocation](UUC_SkillButton* Source, UUC_SkillButton* Dest) {
 		FVector2D SourceLength = Source->RenderTransform.Translation - TargetLocation;
 		FVector2D DestLength = Dest->RenderTransform.Translation - TargetLocation;
 
 		return SourceLength.Size() < DestLength.Size();
 	});
 
-	UButton* TargetButton = nullptr;
+	UUC_SkillButton* TargetButton = nullptr;
 	if (TempButtonArray.IsValidIndex(0))
 		TargetButton = TempButtonArray[0];
 
@@ -173,5 +231,22 @@ void UUC_SkillSelector::Enter_Touch2SecMode()
 
 	if (IsValid(CircleImage))
 		CircleImage->SetVisibility(ESlateVisibility::Visible);
+
+}
+
+void UUC_SkillSelector::Update()
+{
+
+}
+
+void UUC_SkillButton::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	UUtilFunctionLibrary::GetStageGameMode()->OnGoldChanged.AddUObject(this, &UUC_SkillButton::Callback_GoldChanged);
+}
+
+void UUC_SkillButton::Callback_GoldChanged(int32 Prev, int32 Current)
+{
 
 }

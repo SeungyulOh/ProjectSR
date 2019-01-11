@@ -98,3 +98,45 @@ void UTowerBuildingNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 		}
 	}
 }
+
+void UReturntoNormalStateNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	ABaseCharacter* Parent = Cast<ABaseCharacter>(MeshComp->GetOwner());
+	if (IsValid(Parent))
+	{
+		Parent->SetState(ECharacterState::ENORMAL);
+	}
+}
+
+void USkillFireNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+	ABaseCharacter* Parent = Cast<ABaseCharacter>(MeshComp->GetOwner());
+	if (IsValid(Parent))
+	{
+		FResourceCacheInfos* tableinfo =SRGAMEINSTANCE(Parent)->TableManager->GetTableInfo<FResourceCacheInfos>(SRGAMEINSTANCE(Parent)->TableManager->DTResourceCacheTable, TEXT("FX_Skill1"));
+		if (tableinfo)
+		{
+			if (tableinfo->CacheObject.IsValid())
+			{
+				UParticleSystem* ps = Cast<UParticleSystem>(tableinfo->CacheObject.Get());
+				if (ps)
+				{
+					FTransform spawntransform;
+					spawntransform.SetLocation(Parent->GetActorLocation());
+					spawntransform.SetScale3D(FVector(2.f, 2.f, 1.f));
+					UGameplayStatics::SpawnEmitterAtLocation(Parent->GetWorld(),ps, spawntransform);
+				}
+			}
+		}
+
+		TArray<AMonster*> Targets;
+		UUtilFunctionLibrary::SearchMonster(Targets, Parent->GetActorLocation(), 600.f);
+
+		for (size_t i = 0; i < Targets.Num(); ++i)
+		{
+			if (IsValid(Targets[i]))
+				Targets[i]->SetAbnormalState(EMonsterAbnormalState::STUNNED, 2.f);
+		}
+	}
+	
+}

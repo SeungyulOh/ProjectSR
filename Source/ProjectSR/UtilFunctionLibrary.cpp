@@ -13,6 +13,7 @@
 #include "BaseCharacter.h"
 #include "EntityRenderComponent.h"
 #include "MonsterSpawner.h"
+#include "Monster.h"
 #include "NavigationPath.h"
 
 
@@ -204,7 +205,28 @@ bool UUtilFunctionLibrary::isPartialPath()
 	return false;
 }
 
+void UUtilFunctionLibrary::SearchMonster(TArray<class AMonster*>& monsters, FVector CenterPoint, float Radius)
+{
+	TArray<TWeakObjectPtr<class AMonster>>& MonsterArray = UUtilFunctionLibrary::GetStageGameMode()->GetMonsterArray();
+
+	for (size_t i = 0; i < MonsterArray.Num(); ++i)
+	{
+		if (!MonsterArray[i].IsValid())
+			continue;
+
+		FVector targetVector = MonsterArray[i]->GetActorLocation();
+		FVector Dir = targetVector - CenterPoint;
+		if (Dir.Size2D() < Radius)
+			monsters.Emplace(MonsterArray[i].Get());
+	}
+}
+
 int32 UUtilFunctionLibrary::GetRequiredGold(float WallLength)
 {
 	return WallLength * 0.1f;
+}
+
+int32 UUtilFunctionLibrary::GetInitialGoldEquivalant(int32 CurrentStage)
+{
+	return FMath::Pow(1.2f, CurrentStage-1) * 1000;
 }

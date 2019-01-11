@@ -4,6 +4,7 @@
 #include "ProjectSR.h"
 #include "TableManager.h"
 #include "ResourceCacheManager.h"
+#include "ObservableManager.h"
 
 PROJECTSR_API USRGameInstance* SRGameInstance = nullptr;
 
@@ -21,8 +22,9 @@ void USRGameInstance::Init()
 
 void USRGameInstance::Shutdown()
 {
+	UObservableManager::ReleaseSingleton();
+
 	Super::Shutdown();
-	
 }
 
 USRGameInstance::USRGameInstance(const FObjectInitializer& ObjectInitializer) 

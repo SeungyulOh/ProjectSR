@@ -105,6 +105,10 @@ void ABaseCharacter::DoTask()
 		UUtilFunctionLibrary::GetStageGameMode()->AddGold(-300);
 
 	}break;
+	case ECharacterState::EPLAYACTIVE1SKILLANIM:
+	{
+		
+	}break;
 	/*case ECharacterState::EBUILDINGCOMPLETED:
 	{
 		if (IsValid(DecalMesh))

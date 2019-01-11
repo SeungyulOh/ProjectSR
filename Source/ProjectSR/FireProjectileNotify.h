@@ -28,3 +28,21 @@ class PROJECTSR_API UTowerBuildingNotify : public UAnimNotify
 
 
 };
+
+UCLASS()
+class PROJECTSR_API UReturntoNormalStateNotify : public UAnimNotify
+{
+	GENERATED_BODY()
+
+	void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+};
+
+UCLASS()
+class PROJECTSR_API USkillFireNotify : public UAnimNotify
+{
+	GENERATED_BODY()
+
+	void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+};

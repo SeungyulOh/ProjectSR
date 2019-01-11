@@ -17,6 +17,10 @@
 #include "GameFramework/PlayerStart.h"
 #include "UC_Topbar.h"
 #include "SplineWall.h"
+#include "UP_MessageNotifier.h"
+#include "SlateColor.h"
+#include "ObservableManager.h"
+#include "Observable_StageData.h"
 
 AStageGameMode::AStageGameMode()
 {
@@ -89,7 +93,7 @@ void AStageGameMode::BeginPlay()
 #endif
 			}
 
-			MessageNotifierWidget = CreateWidget<UUserWidget>(SRGAMEINSTANCE(GEngine), WidgetClass, WIDGET_MESSAGE);
+			MessageNotifierWidget = (CreateWidget<UUP_MessageNotifier>(SRGAMEINSTANCE(GEngine), WidgetClass, WIDGET_MESSAGE));
 			if (IsValid(MessageNotifierWidget) && !MessageNotifierWidget->IsInViewport())
 			{
 				MessageNotifierWidget->AddToViewport();
@@ -123,6 +127,12 @@ void AStageGameMode::BeginPlay()
 		}
 	}
 	
+	UObservable_StageData* StageData = UObservableManager::Get()->GetObservable<UObservable_StageData>();
+	if (IsValid(StageData))
+	{
+		StageData->StageData.CurrentStage = 1;
+	}
+
 }
 
 void AStageGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -130,6 +140,8 @@ void AStageGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	SpawnerArray.Empty();
+
+	OnGoldChanged.Clear();
 }
 
 void AStageGameMode::Callback_MessageAnimationEnd()
@@ -148,6 +160,12 @@ void AStageGameMode::Callback_MessageAnimationEnd()
 	case EGameStateEnum::STAGEFAILED:
 	{
 		UGameplayStatics::OpenLevel(SRGAMEINSTANCE(GEngine), TEXT("StartupMap"));
+	}break;
+
+	case EGameStateEnum::STAGECLEAR:
+	{
+		if (IsValid(IngameWidget))
+			IngameWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}break;
 	}
 
@@ -194,10 +212,12 @@ void AStageGameMode::SetGameStateMode(EGameStateEnum InMode)
 		case EGameStateEnum::STAGEFAILED:
 		{
 			MessageNotifierWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UUtilFunctionLibrary::PlayWidgetAnimation(MessageNotifierWidget, TEXT("Stage_Fail"), false, EUMGSequencePlayMode::Forward);
+			MessageNotifierWidget->MessageText->SetText(FText::FromString(TEXT("StageFailed!")));
+			MessageNotifierWidget->MessageText->SetColorAndOpacity(FSlateColor(FLinearColor(0.4f, 0.f, 0.f)));
+			UUtilFunctionLibrary::PlayWidgetAnimation(MessageNotifierWidget, TEXT("Message"), false, EUMGSequencePlayMode::Forward);
 			IngameWidget->SetVisibility(ESlateVisibility::Collapsed);
 
-			UWidgetAnimation* anim = UUtilFunctionLibrary::GetWidgetAnimation(MessageNotifierWidget, TEXT("Stage_Fail"));
+			UWidgetAnimation* anim = UUtilFunctionLibrary::GetWidgetAnimation(MessageNotifierWidget, TEXT("Message"));
 			if (anim)
 			{
 				anim->OnAnimationFinished.Clear();
@@ -205,6 +225,23 @@ void AStageGameMode::SetGameStateMode(EGameStateEnum InMode)
 			}
 
 			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.f);
+		}break;
+
+		case EGameStateEnum::STAGECLEAR:
+		{
+			MessageNotifierWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			MessageNotifierWidget->MessageText->SetText(FText::FromString(TEXT("StageFailed!")));
+			MessageNotifierWidget->MessageText->SetColorAndOpacity(FSlateColor(FLinearColor(0.4f, 0.f, 0.f)));
+			UUtilFunctionLibrary::PlayWidgetAnimation(MessageNotifierWidget, TEXT("Message"), false, EUMGSequencePlayMode::Forward);
+			IngameWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+			UWidgetAnimation* anim = UUtilFunctionLibrary::GetWidgetAnimation(MessageNotifierWidget, TEXT("Message"));
+			if (anim)
+			{
+				anim->OnAnimationFinished.Clear();
+				anim->OnAnimationFinished.AddDynamic(this, &AStageGameMode::Callback_MessageAnimationEnd);
+			}
+
 		}break;
 
 		default:
@@ -223,6 +260,11 @@ void AStageGameMode::DecreaseMonsterCount()
 {
 	MonsterRemains--;
 	OnMonsterCountChanged.Broadcast(MonsterRemains);
+
+	if (MonsterRemains == 0)
+	{
+		SetGameStateMode(EGameStateEnum::STAGECLEAR);
+	}
 }
 
 void AStageGameMode::AddGold(int32 MaxHp)
