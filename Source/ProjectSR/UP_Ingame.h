@@ -88,6 +88,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnClick_ButtonPrev();
 
+	UFUNCTION()
+	void Render_WhenUserModeChanged(EUserModeEnum NewMode);
+
 
 public:
 

@@ -55,12 +55,6 @@ public:
 	class AActor* cachedViewtarget = nullptr;
 
 	UPROPERTY()
-	class UUP_Ingame* IngameWidget = nullptr;
-
-	UPROPERTY()
-	class UUP_MessageNotifier*	MessageNotifierWidget = nullptr;
-
-	UPROPERTY()
 	class UBuildingManager* BuildingManager = nullptr;
 
 	UPROPERTY()
@@ -79,6 +73,8 @@ public:
 	FMonsterCountChanged OnMonsterCountChanged;
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FGoldChanged, int32 , int32)
 	FGoldChanged OnGoldChanged;
+	DECLARE_MULTICAST_DELEGATE_OneParam(FUserModeChanged, EUserModeEnum)
+	FUserModeChanged OnUserModeChanged;
 
 private:
 	void DoTasks();

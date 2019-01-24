@@ -14,6 +14,7 @@
 #include "EntityRenderComponent.h"
 #include "MonsterSpawner.h"
 #include "Monster.h"
+#include "StageGameHUD.h"
 #include "NavigationPath.h"
 
 
@@ -55,6 +56,17 @@ ABasePlayerController* UUtilFunctionLibrary::GetBasePlayerController()
 class AStageGameMode* UUtilFunctionLibrary::GetStageGameMode()
 {
 	return Cast<AStageGameMode>(UGameplayStatics::GetGameMode(SRGAMEINSTANCE(GEngine)->GetWorld()));
+}
+
+class AStageGameHUD* UUtilFunctionLibrary::GetStageGameHUD()
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(SRGAMEINSTANCE(GEngine)->GetWorld(), 0);
+	if (IsValid(PC))
+	{
+		return Cast<AStageGameHUD>(PC->GetHUD());
+	}
+	
+	return nullptr;
 }
 
 class UEntityRenderComponent* UUtilFunctionLibrary::GetRenderComponent(AActor* TargetActor)

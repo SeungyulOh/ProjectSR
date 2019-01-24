@@ -21,6 +21,7 @@ public:
 	static UWorld*						 GetMyWorld();
 	static class ABasePlayerController*		 GetBasePlayerController();
 	static class AStageGameMode*			GetStageGameMode();
+	static class AStageGameHUD*				GetStageGameHUD();
 	static class UEntityRenderComponent*	GetRenderComponent(AActor* TargetActor);
 	
 

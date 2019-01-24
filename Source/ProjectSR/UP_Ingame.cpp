@@ -17,6 +17,7 @@
 #include "UP_Ingame.h"
 #include "UC_SkillSelector.h"
 #include "UC_Topbar.h"
+#include "StageGameHUD.h"
 #include "NavigationSystem.h"
 
 
@@ -30,6 +31,9 @@ void UUP_Ingame::NativeConstruct()
 	Renderer.variables = &Variables;
 	Renderer.Prepare();
 	Renderer.Render();
+
+	//UUtilFunctionLibrary::GetStageGameMode()->OnUserModeChanged.Clear();
+	//UUtilFunctionLibrary::GetStageGameMode()->OnUserModeChanged.AddDynamic(this, &UUP_Ingame::Render_WhenUserModeChanged);
 }
 
 void UUP_Ingame::NativeDestruct()
@@ -48,7 +52,7 @@ void UUP_Ingame::OnClick_CameraToggle()
 void UUP_Ingame::OnClick_ButtonReady()
 {
 	/*To Do : Need to cache resource later*/
-	UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SkillSelector->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	Variables.SkillSelector->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	UUtilFunctionLibrary::GetStageGameMode()->SetGameStateMode(EGameStateEnum::MONSTERSPAWNED);
 	UUtilFunctionLibrary::GetStageGameMode()->SetUserMode(EUserModeEnum::ENORMAL);
 	/**/
@@ -120,6 +124,11 @@ void UUP_Ingame::OnClick_ButtonComplete()
 void UUP_Ingame::OnClick_ButtonPrev()
 {
 	UUtilFunctionLibrary::GetBuildingManager()->CancelSpawn();
+}
+
+void UUP_Ingame::Render_WhenUserModeChanged(EUserModeEnum NewMode)
+{
+
 }
 
 void FRenderer::Prepare()
@@ -204,7 +213,7 @@ void FRenderer::Render()
 			
 
 
-			UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameMode()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Forward);
+			UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Forward);
 			
 		}break;
 
@@ -246,7 +255,7 @@ void FRenderer::Render()
 				
 
 
-			UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameMode()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Forward);
+			UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Forward);
 
 		}break;
 
@@ -267,7 +276,7 @@ void FRenderer::Render()
 				variables->Button_Prev->SetVisibility(ESlateVisibility::Collapsed);
 
 
-			UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameMode()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Forward);
+			UUtilFunctionLibrary::PlayWidgetAnimation(UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget, TEXT("UIAppear"), false, EUMGSequencePlayMode::Forward);
 
 		}break;
 

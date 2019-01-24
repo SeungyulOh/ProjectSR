@@ -13,6 +13,7 @@
 #include "UC_SkillSelector.h"
 #include "Tower.h"
 #include "TableManager.h"
+#include "StageGameHUD.h"
 #include "TableInfos.h"
 
 const float MaxPitch = -20.f;
@@ -62,7 +63,7 @@ void ABasePlayerController::Tick(float DeltaSeconds)
 #if WITH_EDITOR
 	if (WasInputKeyJustPressed(EKeys::PageUp))
 	{
-		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget;
 		if (IsValid(IngameWidget))
 		{
 			UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
@@ -72,7 +73,7 @@ void ABasePlayerController::Tick(float DeltaSeconds)
 	}
 	else if (WasInputKeyJustPressed(EKeys::PageDown))
 	{
-		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+		UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget;
 		if (IsValid(IngameWidget))
 		{
 			UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
@@ -173,7 +174,7 @@ void UInputHelper::CallbackAxis_MoveLeftRight(float AxisValue)
 			FVector2D Direction2D = FVector2D(-MoveAxis.X, MoveAxis.Y);
 			Direction2D = Direction2D.GetSafeNormal()*5.f;
 			UUtilFunctionLibrary::GetBaseLevelScriptActor()->Callback_DynamicCameraMove(Direction2D);
-			UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Renderer.Reposition_SubUI();
+			UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget->Renderer.Reposition_SubUI();
 		}
 		
 	}
@@ -312,7 +313,7 @@ void UInputHelper::CallbackInputTouchOver(ETouchIndex::Type TouchIndex, FVector 
 		}
 		else
 		{
-			UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameMode()->IngameWidget;
+			UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget;
 			if (IsValid(IngameWidget))
 			{
 				UUC_SkillSelector* Skillselector = IngameWidget->Variables.SkillSelector;
@@ -360,7 +361,7 @@ void UInputHelper::CallbackInputTouchEnd(ETouchIndex::Type TouchIndex, FVector L
 		viewScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
 
 		FVector ResultLocation = Location / viewScale;
-		UUtilFunctionLibrary::GetStageGameMode()->IngameWidget->Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ResultLocation.X, ResultLocation.Y));
+		UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget->Variables.SubUIOverlay->SetRenderTranslation(FVector2D(ResultLocation.X, ResultLocation.Y));
 		UUtilFunctionLibrary::GetBuildingManager()->TouchEnd(ResultLocation);
 	}
 	

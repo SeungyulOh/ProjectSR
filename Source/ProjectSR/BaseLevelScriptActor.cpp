@@ -15,7 +15,6 @@
 void ABaseLevelScriptActor::BeginPlay()
 {
 	Super::BeginPlay();
-
 	StartCameraPostion = DynamicCamera->GetActorLocation();
 
 	UTableManager* TableManager = SRGAMEINSTANCE(this)->TableManager;

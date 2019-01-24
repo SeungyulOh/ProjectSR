@@ -20,23 +20,29 @@
 #include "UP_MessageNotifier.h"
 #include "SlateColor.h"
 #include "ObservableManager.h"
+#include "StageGameHUD.h"
 #include "Observable_StageData.h"
 
 AStageGameMode::AStageGameMode()
 {
 	PlayerControllerClass = ABasePlayerController::StaticClass();
-
-	BuildingManager = CreateDefaultSubobject<UBuildingManager>(TEXT("BuildingManager"));
 }
 
 void AStageGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
 	TArray<AActor*> OutActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
 	if (OutActors.IsValidIndex(0))
 		PlayerStartActor = Cast<APlayerStart>(OutActors[0]);
+
+	if (!PlayerStartActor.IsValid())
+		return;
+
+	if (!IsValid(BuildingManager))
+	{
+		BuildingManager = NewObject<UBuildingManager>();
+	}
 
 
 	UTableManager* TableManager = SRGAMEINSTANCE(this)->TableManager;
@@ -59,7 +65,6 @@ void AStageGameMode::BeginPlay()
 
 
 			/*Spawn Nexus*/
-			TArray<AActor*> OutActors;
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), OutActors);
 
 			FVector TargetLocation = OutActors[0]->GetActorLocation();
@@ -75,7 +80,7 @@ void AStageGameMode::BeginPlay()
 
 	
 
-	USRGameInstance* GameInst = SRGAMEINSTANCE(this);
+	/*USRGameInstance* GameInst = SRGAMEINSTANCE(this);
 	if (GameInst)
 	{
 		FWidgetTableInfos* TableInfo = GameInst->TableManager->GetTableInfo<FWidgetTableInfos>(GameInst->TableManager->DTWidgetTable, WIDGET_MESSAGE);
@@ -93,7 +98,7 @@ void AStageGameMode::BeginPlay()
 #endif
 			}
 
-			MessageNotifierWidget = (CreateWidget<UUP_MessageNotifier>(SRGAMEINSTANCE(GEngine), WidgetClass, WIDGET_MESSAGE));
+			MessageNotifierWidget = (CreateWidget<UUP_MessageNotifier>(GameInst, WidgetClass, WIDGET_MESSAGE));
 			if (IsValid(MessageNotifierWidget) && !MessageNotifierWidget->IsInViewport())
 			{
 				MessageNotifierWidget->AddToViewport();
@@ -119,13 +124,13 @@ void AStageGameMode::BeginPlay()
 #endif
 			}
 
-			IngameWidget = CreateWidget<UUP_Ingame>(SRGAMEINSTANCE(GEngine), WidgetClass, WIDGET_INGAME);
+			IngameWidget = CreateWidget<UUP_Ingame>(GameInst, WidgetClass, WIDGET_INGAME);
 			if (IsValid(IngameWidget) && !IngameWidget->IsInViewport())
 			{
 				IngameWidget->AddToViewport();
 			}
 		}
-	}
+	}*/
 	
 	UObservable_StageData* StageData = UObservableManager::Get()->GetObservable<UObservable_StageData>();
 	if (IsValid(StageData))
@@ -138,14 +143,17 @@ void AStageGameMode::BeginPlay()
 void AStageGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
 	SpawnerArray.Empty();
 
 	OnGoldChanged.Clear();
+
+	
 }
 
 void AStageGameMode::Callback_MessageAnimationEnd()
 {
+	UUP_Ingame* IngameWidget = UUtilFunctionLibrary::GetStageGameHUD()->IngameWidget;
+
 	switch (GameStateMode)
 	{
 	case EGameStateEnum::IDLE:
@@ -179,6 +187,8 @@ void AStageGameMode::SetUserMode(EUserModeEnum InMode)
 		UserMode = InMode;
 		DoTasks();
 	}
+
+	OnUserModeChanged.Broadcast(InMode);
 
 	if (IsValid(IngameWidget))
 		IngameWidget->Renderer.Render();
